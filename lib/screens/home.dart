@@ -68,7 +68,7 @@ class Home extends StatelessWidget {
                   _buildButton(
                     icon: Icons.task,
                     label: 'Tareas',
-                    color: const Color.fromARGB(255, 116, 212, 119),
+                    color: const Color.fromARGB(255, 33, 192, 38),
                   ),
                   _buildButton(
                     icon: Icons.meeting_room,
@@ -93,7 +93,7 @@ class Home extends StatelessWidget {
                   _buildButton(
                     icon: Icons.notifications,
                     label: 'Notificaciones',
-                    color: Colors.redAccent,
+                    color: const Color.fromARGB(255, 2, 189, 202), // Cambiado al color de "Reportar Problema"
                   ),
                 ],
               ),
@@ -105,10 +105,10 @@ class Home extends StatelessWidget {
                   onPressed: () {
                     // Acción para reportar problema
                   },
-                  icon: const Icon(Icons.report_problem),
+                  icon: const Icon(Icons.report_problem, color: Colors.white), // Icono en blanco
                   label: const Text('Reportar Problema'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey,
+                    backgroundColor: const Color.fromARGB(255, 207, 29, 29), // Cambiado al color de "Notificaciones"
                     foregroundColor: Colors.white, // Texto en blanco
                     padding: const EdgeInsets.symmetric(vertical: 15), // Más alto
                     textStyle: const TextStyle(fontSize: 20), // Tamaño de letra más grande
@@ -133,7 +133,7 @@ class Home extends StatelessWidget {
         onPressed: () {
           // Acción para el botón
         },
-        icon: Icon(icon),
+        icon: Icon(icon, color: Colors.white), // Icono en blanco
         label: Text(label),
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
