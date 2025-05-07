@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-class TaskScreen extends StatelessWidget {
-  const TaskScreen({super.key});
-
+class NotificationScreen extends StatelessWidget {
+  const NotificationScreen({super.key});
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,7 +19,7 @@ class TaskScreen extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFF2196F3), // Azul estándar
+                  Color(0xFF1976D2), // Azul vibrante
                   Color(0xFF64B5F6), // Azul intermedio
                   Color(0xFFBBDEFB), // Azul claro
                 ],
@@ -27,7 +27,7 @@ class TaskScreen extends StatelessWidget {
             ),
             child: AppBar(
               title: const Text(
-                'Tareas',
+                'Notificaciones',
                 style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
               ),
               centerTitle: true,
@@ -37,9 +37,9 @@ class TaskScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: Center(
+      body: const Center(
         child: Text(
-          '¡Bienvenido a la lista de tareas!',
+          '¡Bienvenido a las notificaciones!',
           style: TextStyle(fontSize: 20),
         ),
       ),
