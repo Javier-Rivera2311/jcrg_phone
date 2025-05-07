@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'home.dart'; // Importa las pantallas
-import 'screen_1.dart';
+import 'messages.dart';
 import 'task.dart';
-import 'screen_3.dart';
-import 'screen_4.dart';
-import 'screen_5.dart';
-import 'screen_6.dart';
+import 'contact.dart';
+import 'meetings.dart';
+import 'workers.dart';
+import 'notifications.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 
 class HomePage extends StatefulWidget {
@@ -21,34 +21,47 @@ class _HomePageState extends State<HomePage> {
   // Lista de pantallas
   final screens = [
     const Home(), // Llama la vista HomeScreen
-    const Screen1(), // Llama la vista Screen2
-    const TaskScreen(),
-    const Screen3(), // Llama la vista Screen3
-    const Screen4(), // Llama la vista Screen4
-    const Screen5(), // Llama la vista Screen5
-    const Screen6(), // Llama la vista Screen6
-    ];
+    const TaskScreen(), // llama a la vista de tareas
+    const ContactScreen(), // Llama la vista contacto
+    const MeetingScreen(), // Llama la vista reuniones
+    const WorkerScreen(), // Llama la vista Screen5
+    const NotificationScreen(), // Llama la vista Screen6
+    const MessagesScreen(), // Llama la vista Screen2
+  ];
 
-final colors = [
-  Color(0xFF42A5F5), // Azul más intenso
-  Color(0xFF2196F3), // Azul estándar
-  Color(0xFF1E88E5), // Azul oscuro
-  Color(0xFF1565C0), // Azul más oscuro
-  Color(0xFF2962FF), // Azul eléctrico
-  Color(0xFF1976D2), // Azul vibrante
-  Color(0xFF0D47A1), // Azul profundo
-  Color(0xFFBBDEFB), // Azul muy claro
-  Color(0xFF82B1FF), // Azul pastel
-];
+  final colors = [
+    Color(0xFF42A5F5), // Azul más intenso, home
+    Color(0xFF2196F3), // Azul estándar, tareas
+    Color(0xFF1E88E5), // Azul oscuro, contactos
+    Color(0xFF1565C0), // Azul más oscuro, reuniones
+    Color(0xFF2962FF), // Azul eléctrico, personal
+    Color(0xFF1976D2), // Azul vibrante, notificaciones
+    Color(0xFF0D47A1), // Azul profundo
+    Color(0xFFBBDEFB), // Azul muy claro, mensajes
+    Color(0xFF82B1FF), // Azul pastel
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('JCRG',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        title: const Text(
+          'JCRG',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
         centerTitle: true,
         backgroundColor: colors[_currentIndex],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.message, color: Color.fromARGB(255, 0, 0, 0)),
+            onPressed: () {
+              // Cambia al índice de la pantalla de mensajes
+              setState(() {
+                _currentIndex = 1; // Índice de la pantalla de mensajes
+              });
+            },
+          ),
+        ],
       ),
       drawer: Drawer(
         child: ListView(
@@ -72,16 +85,16 @@ final colors = [
               },
             ),
             ListTile(
-              leading: const Icon(Icons.message),
-              title: const Text('Mensajes'),
+              leading: const Icon(Icons.task),
+              title: const Text('Tareas'),
               onTap: () {
                 setState(() => _currentIndex = 1);
                 Navigator.pop(context); // Cierra el drawer
               },
             ),
             ListTile(
-              leading: const Icon(Icons.task),
-              title: const Text('Tareas'),
+              leading: const Icon(Icons.contact_page),
+              title: const Text('Contactos'),
               onTap: () {
                 setState(() => _currentIndex = 2);
                 Navigator.pop(context); // Cierra el drawer
@@ -89,7 +102,7 @@ final colors = [
             ),
             ListTile(
               leading: const Icon(Icons.calendar_month),
-              title: const Text('Reuiniones'),
+              title: const Text('Reuniones'),
               onTap: () {
                 setState(() => _currentIndex = 3);
                 Navigator.pop(context); // Cierra el drawer
@@ -104,16 +117,16 @@ final colors = [
               },
             ),
             ListTile(
-              leading: const Icon(Icons.contact_page),
-              title: const Text('contactos'),
+              leading: const Icon(Icons.notifications),
+              title: const Text('Notificaciones'),
               onTap: () {
                 setState(() => _currentIndex = 5);
                 Navigator.pop(context); // Cierra el drawer
               },
             ),
             ListTile(
-              leading: const Icon(Icons.notifications),
-              title: const Text('Notificaciones'),
+              leading: const Icon(Icons.message),
+              title: const Text('Mensajes'),
               onTap: () {
                 setState(() => _currentIndex = 6);
                 Navigator.pop(context); // Cierra el drawer
@@ -141,12 +154,6 @@ final colors = [
               textColor: Colors.white,
             ),
             GButton(
-              icon: Icons.message,
-              text: 'Mensajes',
-              iconActiveColor: Colors.white,
-              textColor: Colors.white,
-            ),
-            GButton(
               icon: Icons.task,
               text: 'Tareas',
               iconActiveColor: Colors.white,
@@ -155,6 +162,12 @@ final colors = [
             GButton(
               icon: Icons.contact_page,
               text: 'Contactos',
+              iconActiveColor: Colors.white,
+              textColor: Colors.white,
+            ),
+            GButton(
+              icon: Icons.meeting_room_rounded,
+              text: 'Reuniones',
               iconActiveColor: Colors.white,
               textColor: Colors.white,
             ),
