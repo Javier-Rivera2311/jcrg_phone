@@ -1,8 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class WorkerScreen extends StatelessWidget {
+class WorkerScreen extends StatefulWidget {
   const WorkerScreen({super.key});
-  
+
+  @override
+  State<WorkerScreen> createState() => _WorkerScreenState();
+}
+
+class _WorkerScreenState extends State<WorkerScreen> {
+  List<dynamic> workers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchWorkers();
+  }
+
+  Future<void> fetchWorkers() async {
+    try {
+      final response = await http.get(Uri.parse('https://backend-jcrg.onrender.com/user/mostrar'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          workers = data['usuarios'];
+        });
+      } else {
+        throw Exception('Error al cargar los datos');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,12 +68,25 @@ class WorkerScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: const Center(
-        child: Text(
-          '¡Bienvenido a la lista del personal!',
-          style: TextStyle(fontSize: 20),
-        ),
-      ),
+      body: workers.isEmpty
+          ? const Center(child: CircularProgressIndicator()) // Muestra un indicador de carga mientras se obtienen los datos
+          : ListView.builder(
+              itemCount: workers.length,
+              itemBuilder: (context, index) {
+                final worker = workers[index];
+                return ListTile(
+                  title: Text(worker['Name'] ?? 'Sin nombre'),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Correo: ${worker['mail'] ?? 'No disponible'}'),
+                      Text('Departamento: ${worker['department_name'] ?? 'No disponible'}'),
+                    ],
+                  ),
+                  isThreeLine: true,
+                );
+              },
+            ),
     );
   }
 }
