@@ -31,52 +31,48 @@ class _EditContactFormState extends State<EditContactForm> {
     projectController = TextEditingController(text: widget.contact['project']);
   }
 
-  Future<void> editContact() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        final response = await http.put(
-          Uri.parse('https://backend-jcrg.onrender.com/user/updateContact'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({
-            'id': widget.contact['id'],
-            'Name': nameController.text,
-            'email': emailController.text,
-            'Phone': phoneController.text,
-            'Commune': communeController.text,
-            'job': jobController.text,
-            'project': projectController.text,
-          }),
-        );
+Future<void> editContact() async {
+  if (_formKey.currentState!.validate()) {
+    try {
+      final response = await http.put(
+        Uri.parse('https://backend-jcrg.onrender.com/user/updateContact/${widget.contact['ID']}'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'Name': nameController.text,
+          'email': emailController.text,
+          'Phone': phoneController.text,
+          'Commune': communeController.text,
+          'job': jobController.text,
+          'project': projectController.text,
+        }),
+      );
 
-        if (response.statusCode == 200) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Contacto actualizado con éxito')),
-          );
-          Navigator.pop(context, true); // Devuelve true para indicar éxito
-        } else {
-          throw Exception('Error al actualizar el contacto');
-        }
-      } catch (e) {
+      if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          const SnackBar(content: Text('Contacto actualizado con éxito')),
         );
+        Navigator.pop(context, true);
+      } else {
+        throw Exception('Error al actualizar el contacto');
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     }
   }
-
-Future<void> deleteContact(String email) async {
+}
+Future<void> deleteContact() async {
   try {
     final response = await http.delete(
-      Uri.parse('https://backend-jcrg.onrender.com/user/deleteContact'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'email': email}),
+      Uri.parse('https://backend-jcrg.onrender.com/user/deleteContact/${widget.contact['ID']}'),
     );
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Contacto eliminado con éxito')),
       );
-      Navigator.pop(context, true); // Opcional: regresar tras borrar
+      Navigator.pop(context, true);
     } else {
       throw Exception('Error al eliminar el contacto');
     }
@@ -86,6 +82,7 @@ Future<void> deleteContact(String email) async {
     );
   }
 }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -166,7 +163,7 @@ Future<void> deleteContact(String email) async {
                     ),
                   );
                   if (confirm == true) {
-                    await deleteContact(emailController.text);
+                    await deleteContact();
                   }
                 },
                 style: ElevatedButton.styleFrom(

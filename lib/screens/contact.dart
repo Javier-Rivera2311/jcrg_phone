@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:jcrg_phone/widgets/Enter_contact.dart';
 import 'package:jcrg_phone/widgets/update_contact.dart';
+import 'package:flutter/services.dart'; // Agrega esta línea
+import 'package:url_launcher/url_launcher.dart'; // Agrega esta línea
 
 class ContactScreen extends StatefulWidget {
   const ContactScreen({super.key});
@@ -127,8 +129,42 @@ void filterContacts() {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Correo: ${contact['email'] ?? 'No disponible'}'),
-                              Text('Teléfono: ${contact['Phone'] ?? 'No disponible'}'),
+                              GestureDetector(
+                                onLongPress: () {
+                                  final email = contact['email'] ?? '';
+                                  if (email.isNotEmpty) {
+                                    Clipboard.setData(ClipboardData(text: email));
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Correo copiado al portapapeles')),
+                                    );
+                                  }
+                                },
+                                child: Text(
+                                  'Correo: ${contact['email'] ?? 'No disponible'}',
+                                  style: const TextStyle(
+                                    color: Colors.blue,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onLongPress: () {
+                                  final phone = contact['Phone'] ?? '';
+                                  if (phone.isNotEmpty) {
+                                    Clipboard.setData(ClipboardData(text: phone));
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Teléfono copiado al portapapeles')),
+                                    );
+                                  }
+                                },
+                                child: Text(
+                                  'Teléfono: ${contact['Phone'] ?? 'No disponible'}',
+                                  style: const TextStyle(
+                                    color: Colors.blue,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
                               Text('Comuna: ${contact['Commune'] ?? 'No disponible'}'),
                               Text('Trabajo: ${contact['job'] ?? 'No disponible'}'),
                               Text('Proyecto: ${contact['project'] ?? 'No disponible'}'),

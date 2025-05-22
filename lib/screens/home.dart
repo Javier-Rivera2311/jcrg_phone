@@ -60,42 +60,54 @@ class Home extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 30),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                alignment: WrapAlignment.center,
-                children: [
-                  _buildButton(
-                    icon: Icons.task,
-                    label: 'Tareas',
-                    color: const Color.fromARGB(255, 33, 192, 38),
-                  ),
-                  _buildButton(
-                    icon: Icons.meeting_room,
-                    label: 'Reuniones',
-                    color: Colors.blueAccent,
-                  ),
-                  _buildButton(
-                    icon: Icons.message,
-                    label: 'Mensajes',
-                    color: Colors.orangeAccent,
-                  ),
-                  _buildButton(
-                    icon: Icons.contact_page,
-                    label: 'Contactos',
-                    color: Colors.purpleAccent,
-                  ),
-                  _buildButton(
-                    icon: Icons.people,
-                    label: 'Personal',
-                    color: Colors.teal,
-                  ),
-                  _buildButton(
-                    icon: Icons.notifications,
-                    label: 'Notificaciones',
-                    color: const Color.fromARGB(255, 2, 189, 202), // Cambiado al color de "Reportar Problema"
-                  ),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  // Calcula el ancho para 2 botones por fila con espacio entre ellos
+                  double buttonWidth = (constraints.maxWidth - 10) / 2;
+                  return Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      _buildButton(
+                        icon: Icons.task,
+                        label: 'Tareas',
+                        color: const Color.fromARGB(255, 33, 192, 38),
+                        width: buttonWidth,
+                      ),
+                      _buildButton(
+                        icon: Icons.meeting_room,
+                        label: 'Reuniones',
+                        color: Colors.blueAccent,
+                        width: buttonWidth,
+                      ),
+                      _buildButton(
+                        icon: Icons.message,
+                        label: 'Mensajes',
+                        color: Colors.orangeAccent,
+                        width: buttonWidth,
+                      ),
+                      _buildButton(
+                        icon: Icons.contact_page,
+                        label: 'Contactos',
+                        color: Colors.purpleAccent,
+                        width: buttonWidth,
+                      ),
+                      _buildButton(
+                        icon: Icons.people,
+                        label: 'Personal',
+                        color: Colors.teal,
+                        width: buttonWidth,
+                      ),
+                      _buildButton(
+                        icon: Icons.notifications,
+                        label: 'Notificaciones',
+                        color: const Color.fromARGB(255, 2, 189, 202),
+                        width: buttonWidth,
+                      ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 15),
               // Botón más grande para "Reportar Problema"
@@ -126,20 +138,21 @@ class Home extends StatelessWidget {
     required IconData icon,
     required String label,
     required Color color,
+    double? width,
   }) {
     return SizedBox(
-      width: 162, // Ancho fijo para los botones
+      width: width ?? 162, // Usa el ancho calculado o el fijo por defecto
       child: ElevatedButton.icon(
         onPressed: () {
           // Acción para el botón
         },
-        icon: Icon(icon, color: Colors.white), // Icono en blanco
-        label: Text(label),
+        icon: Icon(icon, color: Colors.white),
+        label: Text(label, overflow: TextOverflow.ellipsis), // Elipsis si es muy largo
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
-          foregroundColor: Colors.white, // Texto en blanco
+          foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-          textStyle: const TextStyle(fontSize: 18), // Tamaño de letra más grande
+          textStyle: const TextStyle(fontSize: 18),
         ),
       ),
     );
