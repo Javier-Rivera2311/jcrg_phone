@@ -1,8 +1,66 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class ContactScreen extends StatelessWidget {
+class ContactScreen extends StatefulWidget {
   const ContactScreen({super.key});
-  
+
+  @override
+  State<ContactScreen> createState() => _ContactScreenState();
+}
+
+class _ContactScreenState extends State<ContactScreen> {
+  List<dynamic> contacts = [];
+  List<dynamic> filteredContacts = [];
+  TextEditingController searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    fetchContacts();
+    searchController.addListener(() {
+      filterContacts();
+    });
+  }
+
+  Future<void> fetchContacts() async {
+    try {
+      final response = await http.get(Uri.parse('https://backend-jcrg.onrender.com/user/Contacts'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          contacts = data['usuarios'];
+          filteredContacts = contacts; // Inicialmente, muestra todos los contactos
+        });
+      } else {
+        throw Exception('Error al cargar los datos');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+void filterContacts() {
+  final query = searchController.text.toLowerCase();
+  setState(() {
+    filteredContacts = contacts.where((contact) {
+      final name = contact['Name']?.toLowerCase() ?? '';
+      final email = contact['email']?.toLowerCase() ?? '';
+      final commune = contact['Commune']?.toLowerCase() ?? '';
+      final phone = contact['Phone']?.toLowerCase() ?? '';
+      final job = contact['job']?.toLowerCase() ?? '';
+      final project = contact['project']?.toLowerCase() ?? '';
+
+      return name.contains(query) ||
+          email.contains(query) ||
+          commune.contains(query) ||
+          phone.contains(query) ||
+          job.contains(query) ||
+          project.contains(query);
+    }).toList();
+  });
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,11 +95,50 @@ class ContactScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: const Center(
-        child: Text(
-          '¡Bienvenido a la lista de contactos!',
-          style: TextStyle(fontSize: 20),
-        ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                labelText: 'Buscar',
+                hintText: 'Ingresa un contacto',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: filteredContacts.isEmpty
+                ? const Center(child: Text('No se encontraron contactos'))
+                : ListView.builder(
+                    itemCount: filteredContacts.length,
+                    itemBuilder: (context, index) {
+                      final contact = filteredContacts[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        child: ListTile(
+                          title: Text(contact['Name'] ?? 'Sin nombre'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Correo: ${contact['email'] ?? 'No disponible'}'),
+                              Text('Teléfono: ${contact['Phone'] ?? 'No disponible'}'),
+                              Text('Comuna: ${contact['Commune'] ?? 'No disponible'}'),
+                              Text('Trabajo: ${contact['job'] ?? 'No disponible'}'),
+                              Text('Proyecto: ${contact['project'] ?? 'No disponible'}'),
+                            ],
+                          ),
+                          isThreeLine: true,
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }
