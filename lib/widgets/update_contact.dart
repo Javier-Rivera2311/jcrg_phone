@@ -34,7 +34,7 @@ class _EditContactFormState extends State<EditContactForm> {
   Future<void> editContact() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final response = await http.post(
+        final response = await http.put(
           Uri.parse('https://backend-jcrg.onrender.com/user/updateContact'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode({
@@ -66,7 +66,7 @@ class _EditContactFormState extends State<EditContactForm> {
 
 Future<void> deleteContact(String email) async {
   try {
-    final response = await http.post(
+    final response = await http.delete(
       Uri.parse('https://backend-jcrg.onrender.com/user/deleteContact'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'email': email}),
