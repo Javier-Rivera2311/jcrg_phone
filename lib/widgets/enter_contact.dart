@@ -49,29 +49,6 @@ class _EnterContactFormState extends State<EnterContactForm> {
       }
     }
   }
-
-Future<void> deleteContact(String email) async {
-  try {
-    final response = await http.post(
-      Uri.parse('https://backend-jcrg.onrender.com/user/deleteContact'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'email': email}),
-    );
-
-    if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Contacto eliminado con éxito')),
-      );
-      Navigator.pop(context, true); // Opcional: regresar tras borrar
-    } else {
-      throw Exception('Error al eliminar el contacto');
-    }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: $e')),
-    );
-  }
-}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -130,19 +107,6 @@ Future<void> deleteContact(String email) async {
               ElevatedButton(
                 onPressed: addContact,
                 child: const Text('Agregar Contacto'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (emailController.text.isNotEmpty) {
-                    deleteContact(emailController.text);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Ingresa el correo del contacto a eliminar')),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                child: const Text('Eliminar Contacto'),
               ),
             ],
             
