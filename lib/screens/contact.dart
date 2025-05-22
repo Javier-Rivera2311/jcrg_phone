@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:jcrg_phone/widgets/Enter_contact.dart';
+import 'package:jcrg_phone/widgets/update_contact.dart';
 
 class ContactScreen extends StatefulWidget {
   const ContactScreen({super.key});
@@ -133,12 +135,40 @@ void filterContacts() {
                             ],
                           ),
                           isThreeLine: true,
+                          trailing: IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () async {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditContactForm(contact: contact),
+                                ),
+                              );
+                              if (result == true) {
+                                fetchContacts(); // Refresca la lista si se editó un contacto
+                              }
+                            },
+                          ),
                         ),
                       );
                     },
                   ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const EnterContactForm(),
+            ),
+          );
+          if (result == true) {
+            fetchContacts(); // Refresca la lista si se agregó un contacto
+          }
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
