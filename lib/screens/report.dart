@@ -6,13 +6,35 @@ class ReportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Reportar Problema',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60.0),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(20.0),
+            bottomRight: Radius.circular(20.0),
+          ),
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color.fromARGB(255, 255, 33, 33), // Rojo degradado
+                  Color(0xFF1E88E5), // Azul para contraste
+                ],
+              ),
+            ),
+            child: AppBar(
+              title: const Text(
+                'Reportar Problema',
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+              centerTitle: true,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+            ),
+          ),
         ),
-        backgroundColor: const Color(0xFF1E88E5),
-        centerTitle: true,
       ),
       body: const Center(
         child: Text(
