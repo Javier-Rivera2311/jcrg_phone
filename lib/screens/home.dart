@@ -1,7 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
   const Home({super.key});
+
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  String? userName;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userName = prefs.getString('userName');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,12 +65,14 @@ class Home extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 20),
-              const Text(
-                '¡Bienvenido a la App JCRG!',
-                style: TextStyle(
+              Text(
+                userName != null && userName!.isNotEmpty
+                    ? '¡Bienvenido a la App JCRG, $userName!'
+                    : '¡Bienvenido a la App JCRG!',
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black, // Cambiado a negro para mejor visibilidad
+                  color: Colors.black,
                 ),
                 textAlign: TextAlign.center,
               ),
