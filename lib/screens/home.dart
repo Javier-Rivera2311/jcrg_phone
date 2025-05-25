@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  final void Function(int)? onNavigate;
+  const Home({super.key, this.onNavigate});
 
   @override
   State<Home> createState() => _HomeState();
@@ -28,11 +29,11 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60.0), // Altura estándar del AppBar
+        preferredSize: const Size.fromHeight(60.0),
         child: ClipRRect(
           borderRadius: const BorderRadius.only(
-            bottomLeft: Radius.circular(20.0), // Bordes redondeados en la esquina inferior izquierda
-            bottomRight: Radius.circular(20.0), // Bordes redondeados en la esquina inferior derecha
+            bottomLeft: Radius.circular(20.0),
+            bottomRight: Radius.circular(20.0),
           ),
           child: Container(
             decoration: const BoxDecoration(
@@ -40,9 +41,9 @@ class _HomeState extends State<Home> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFF42A5F5), // Azul más intenso
-                  Color.fromARGB(255, 104, 184, 250), // Azul más claro
-                  Color.fromARGB(255, 213, 234, 252), // Azul más claro
+                  Color(0xFF42A5F5),
+                  Color.fromARGB(255, 104, 184, 250),
+                  Color.fromARGB(255, 213, 234, 252),
                 ],
               ),
             ),
@@ -52,8 +53,8 @@ class _HomeState extends State<Home> {
                 style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
               ),
               centerTitle: true,
-              backgroundColor: Colors.transparent, // Fondo transparente para mostrar el degradado
-              elevation: 0, // Sin sombra
+              backgroundColor: Colors.transparent,
+              elevation: 0,
             ),
           ),
         ),
@@ -79,74 +80,42 @@ class _HomeState extends State<Home> {
               const SizedBox(height: 20),
               const Text(
                 'Administra tus tareas, notificaciones del trabajo, contactos, reuniones y más desde un solo lugar.',
-                style: TextStyle(fontSize: 16, color: Colors.black54), // Cambiado a negro suave
+                style: TextStyle(fontSize: 16, color: Colors.black54),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 30),
               LayoutBuilder(
                 builder: (context, constraints) {
-                  // Calcula el ancho para 2 botones por fila con espacio entre ellos
                   double buttonWidth = (constraints.maxWidth - 10) / 2;
                   return Wrap(
                     spacing: 10,
                     runSpacing: 10,
                     alignment: WrapAlignment.center,
                     children: [
-                      _buildButton(
-                        icon: Icons.task,
-                        label: 'Tareas',
-                        color: const Color.fromARGB(255, 33, 192, 38),
-                        width: buttonWidth,
-                      ),
-                      _buildButton(
-                        icon: Icons.meeting_room,
-                        label: 'Reuniones',
-                        color: Colors.blueAccent,
-                        width: buttonWidth,
-                      ),
-                      _buildButton(
-                        icon: Icons.message,
-                        label: 'Mensajes',
-                        color: Colors.orangeAccent,
-                        width: buttonWidth,
-                      ),
-                      _buildButton(
-                        icon: Icons.contact_page,
-                        label: 'Contactos',
-                        color: Colors.purpleAccent,
-                        width: buttonWidth,
-                      ),
-                      _buildButton(
-                        icon: Icons.people,
-                        label: 'Personal',
-                        color: Colors.teal,
-                        width: buttonWidth,
-                      ),
-                      _buildButton(
-                        icon: Icons.notifications,
-                        label: 'Notificaciones',
-                        color: const Color.fromARGB(255, 2, 189, 202),
-                        width: buttonWidth,
-                      ),
+                      _buildButton(Icons.task, 'Tareas', const Color.fromARGB(255, 33, 192, 38), buttonWidth, 1),
+                      _buildButton(Icons.meeting_room, 'Reuniones', Colors.blueAccent, buttonWidth, 3),
+                      _buildButton(Icons.message, 'Mensajes', Colors.orangeAccent, buttonWidth, 6),
+                      _buildButton(Icons.contact_page, 'Contactos', Colors.purpleAccent, buttonWidth, 2),
+                      _buildButton(Icons.people, 'Personal', Colors.teal, buttonWidth, 4),
+                      _buildButton(Icons.notifications, 'Notificaciones', const Color.fromARGB(255, 2, 189, 202), buttonWidth, 5),
                     ],
                   );
                 },
               ),
               const SizedBox(height: 15),
-              // Botón más grande para "Reportar Problema"
               SizedBox(
-                width: double.infinity, // Ocupa todo el ancho disponible
+                width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    // Acción para reportar problema
+                    widget.onNavigate?.call(7); // Ir a Reportar Problema
                   },
-                  icon: const Icon(Icons.report_problem, color: Colors.white), // Icono en blanco
+                  icon: const Icon(Icons.report_problem, color: Colors.white),
                   label: const Text('Reportar Problema'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 207, 29, 29), // Cambiado al color de "Notificaciones"
-                    foregroundColor: Colors.white, // Texto en blanco
-                    padding: const EdgeInsets.symmetric(vertical: 15), // Más alto
-                    textStyle: const TextStyle(fontSize: 20), // Tamaño de letra más grande
+                    backgroundColor: const Color.fromARGB(255, 207, 29, 29),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    textStyle: const TextStyle(fontSize: 20),
                   ),
                 ),
               ),
@@ -157,20 +126,15 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget _buildButton({
-    required IconData icon,
-    required String label,
-    required Color color,
-    double? width,
-  }) {
+  Widget _buildButton(IconData icon, String label, Color color, double width, int tabIndex) {
     return SizedBox(
-      width: width ?? 162, // Usa el ancho calculado o el fijo por defecto
+      width: width,
       child: ElevatedButton.icon(
         onPressed: () {
-          // Acción para el botón
+          widget.onNavigate?.call(tabIndex);
         },
         icon: Icon(icon, color: Colors.white),
-        label: Text(label, overflow: TextOverflow.ellipsis), // Elipsis si es muy largo
+        label: Text(label, overflow: TextOverflow.ellipsis),
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
           foregroundColor: Colors.white,

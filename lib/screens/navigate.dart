@@ -19,18 +19,28 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
+  late List<Widget> screens;
 
-  // Lista de pantallas
-  final screens = [
-    const Home(),
-    const TaskScreen(),
-    const ContactScreen(),
-    const MeetingScreen(),
-    const WorkerScreen(),
-    const NotificationScreen(),
-    const MessagesScreen(),
-    const ReportScreen(), // <-- Asegúrate de que este widget existe
-  ];
+  void setTabIndex(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    screens = [
+      Home(onNavigate: setTabIndex),
+      const TaskScreen(),
+      const ContactScreen(),
+      const MeetingScreen(),
+      const WorkerScreen(),
+      const NotificationScreen(),
+      const MessagesScreen(),
+      const ReportScreen(),
+    ];
+  }
 
   final colors = [
     Color(0xFF42A5F5), // Azul más intenso, home
