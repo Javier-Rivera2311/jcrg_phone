@@ -7,6 +7,7 @@ import 'meetings.dart';
 import 'workers.dart';
 import 'notifications.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -64,73 +65,99 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
+        child: Column(
           children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: colors[_currentIndex],
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  DrawerHeader(
+                    decoration: BoxDecoration(
+                      color: colors[_currentIndex],
+                    ),
+                    child: const Text(
+                      'Menú',
+                      style: TextStyle(color: Colors.white, fontSize: 24),
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.home),
+                    title: const Text('Inicio'),
+                    onTap: () {
+                      setState(() => _currentIndex = 0);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.task),
+                    title: const Text('Tareas'),
+                    onTap: () {
+                      setState(() => _currentIndex = 1);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.contact_page),
+                    title: const Text('Contactos'),
+                    onTap: () {
+                      setState(() => _currentIndex = 2);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.calendar_month),
+                    title: const Text('Reuniones'),
+                    onTap: () {
+                      setState(() => _currentIndex = 3);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.person),
+                    title: const Text('Personal'),
+                    onTap: () {
+                      setState(() => _currentIndex = 4);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.notifications),
+                    title: const Text('Notificaciones'),
+                    onTap: () {
+                      setState(() => _currentIndex = 5);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.message),
+                    title: const Text('Mensajes'),
+                    onTap: () {
+                      setState(() => _currentIndex = 6);
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
               ),
-              child: const Text(
-                'Menú',
-                style: TextStyle(color: Colors.white, fontSize: 24),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.logout),
+                  label: const Text('Cerrar sesión'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.clear();
+                    if (!mounted) return;
+                    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                  },
+                ),
               ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Inicio'),
-              onTap: () {
-                setState(() => _currentIndex = 0);
-                Navigator.pop(context); // Cierra el drawer
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.task),
-              title: const Text('Tareas'),
-              onTap: () {
-                setState(() => _currentIndex = 1);
-                Navigator.pop(context); // Cierra el drawer
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.contact_page),
-              title: const Text('Contactos'),
-              onTap: () {
-                setState(() => _currentIndex = 2);
-                Navigator.pop(context); // Cierra el drawer
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.calendar_month),
-              title: const Text('Reuniones'),
-              onTap: () {
-                setState(() => _currentIndex = 3);
-                Navigator.pop(context); // Cierra el drawer
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Personal'),
-              onTap: () {
-                setState(() => _currentIndex = 4);
-                Navigator.pop(context); // Cierra el drawer
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.notifications),
-              title: const Text('Notificaciones'),
-              onTap: () {
-                setState(() => _currentIndex = 5);
-                Navigator.pop(context); // Cierra el drawer
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.message),
-              title: const Text('Mensajes'),
-              onTap: () {
-                setState(() => _currentIndex = 6);
-                Navigator.pop(context); // Cierra el drawer
-              },
             ),
           ],
         ),
