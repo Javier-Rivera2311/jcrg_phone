@@ -107,87 +107,220 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Registrar usuario")),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: "Nombre", border: OutlineInputBorder()),
-                  validator: (v) => v == null || v.isEmpty ? "Ingrese su nombre" : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: emailController,
-                  decoration: const InputDecoration(labelText: "Correo institucional", border: OutlineInputBorder()),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (v) => v == null || v.isEmpty ? "Ingrese su correo" : null,
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<int>(
-                  value: selectedDepartmentId,
-                  decoration: const InputDecoration(labelText: 'Departamento', border: OutlineInputBorder()),
-                  items: departments.map<DropdownMenuItem<int>>((dep) {
-                    return DropdownMenuItem<int>(
-                      value: dep['ID'],
-                      child: Text(dep['name_dep']),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedDepartmentId = value!;
-                    });
-                  },
-                  validator: (value) => value == null ? 'Seleccione un departamento' : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: passwordController,
-                  decoration: const InputDecoration(labelText: "Contraseña", border: OutlineInputBorder()),
-                  obscureText: true,
-                  validator: (v) => v == null || v.isEmpty ? "Ingrese su contraseña" : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: confirmPasswordController,
-                  decoration: const InputDecoration(labelText: "Confirmar contraseña", border: OutlineInputBorder()),
-                  obscureText: true,
-                  validator: (v) => v == null || v.isEmpty ? "Confirme su contraseña" : null,
-                ),
-                const SizedBox(height: 20),
-                if (errorMessage != null)
-                  Text(errorMessage!, style: const TextStyle(color: Colors.red)),
-                if (successMessage != null)
-                  Text(successMessage!, style: const TextStyle(color: Colors.green)),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: isLoading
-                        ? null
-                        : () {
-                            if (_formKey.currentState!.validate()) {
-                              _register();
-                            }
-                          },
-                    child: isLoading
-                        ? const CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          )
-                        : const Text("Registrar"),
+      // Fondo azul degradado
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF1976D2), // Azul fuerte
+              Color(0xFF42A5F5), // Azul medio
+              Color(0xFFBBDEFB), // Azul claro
+            ],
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  const Icon(Icons.person_add, size: 80, color: Colors.white),
+                  const SizedBox(height: 24),
+                  const Text(
+                    "Registrar usuario",
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          blurRadius: 4,
+                          color: Colors.black26,
+                          offset: Offset(1, 2),
+                        )
+                      ],
+                    ),
                   ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text("¿Ya tienes cuenta? Inicia sesión"),
-                ),
-              ],
+                  const SizedBox(height: 32),
+                  TextFormField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: "Nombre",
+                      labelStyle: const TextStyle(color: Colors.white),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.15),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      prefixIcon: const Icon(Icons.person, color: Colors.white),
+                    ),
+                    style: const TextStyle(color: Colors.white),
+                    validator: (v) => v == null || v.isEmpty ? "Ingrese su nombre" : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: emailController,
+                    decoration: InputDecoration(
+                      labelText: "Correo institucional",
+                      labelStyle: const TextStyle(color: Colors.white),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.15),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      prefixIcon: const Icon(Icons.email, color: Colors.white),
+                    ),
+                    style: const TextStyle(color: Colors.white),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (v) => v == null || v.isEmpty ? "Ingrese su correo" : null,
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<int>(
+                    value: selectedDepartmentId,
+                    decoration: InputDecoration(
+                      labelText: 'Departamento',
+                      labelStyle: const TextStyle(color: Colors.white),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.15),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      prefixIcon: const Icon(Icons.apartment, color: Colors.white),
+                    ),
+                    dropdownColor: const Color(0xFF42A5F5),
+                    iconEnabledColor: Colors.white,
+                    items: departments.map<DropdownMenuItem<int>>((dep) {
+                      return DropdownMenuItem<int>(
+                        value: dep['ID'],
+                        child: Text(dep['name_dep'], style: const TextStyle(color: Colors.white)),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedDepartmentId = value!;
+                      });
+                    },
+                    validator: (value) => value == null ? 'Seleccione un departamento' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: passwordController,
+                    decoration: InputDecoration(
+                      labelText: "Contraseña",
+                      labelStyle: const TextStyle(color: Colors.white),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.15),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      prefixIcon: const Icon(Icons.lock, color: Colors.white),
+                    ),
+                    style: const TextStyle(color: Colors.white),
+                    obscureText: true,
+                    validator: (v) => v == null || v.isEmpty ? "Ingrese su contraseña" : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: confirmPasswordController,
+                    decoration: InputDecoration(
+                      labelText: "Confirmar contraseña",
+                      labelStyle: const TextStyle(color: Colors.white),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.15),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      prefixIcon: const Icon(Icons.lock_outline, color: Colors.white),
+                    ),
+                    style: const TextStyle(color: Colors.white),
+                    obscureText: true,
+                    validator: (v) => v == null || v.isEmpty ? "Confirme su contraseña" : null,
+                  ),
+                  const SizedBox(height: 20),
+                  if (errorMessage != null)
+                    Text(errorMessage!, style: const TextStyle(color: Colors.yellowAccent, fontWeight: FontWeight.bold)),
+                  if (successMessage != null)
+                    Text(successMessage!, style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              if (_formKey.currentState!.validate()) {
+                                _register();
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1565C0),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                        elevation: 4,
+                      ),
+                      child: isLoading
+                          ? const CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            )
+                          : const Text(
+                              "Registrar",
+                              style: TextStyle(
+                                color: Colors.white, // Fuerza el color blanco para el texto
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      label: const Text(
+                        "Volver",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.white, width: 2),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    child: const Text("¿Ya tienes cuenta? Inicia sesión"),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

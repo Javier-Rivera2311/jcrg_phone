@@ -9,6 +9,7 @@ import 'package:jcrg_phone/screens/workers.dart';
 import 'package:jcrg_phone/screens/notifications.dart';
 import 'package:jcrg_phone/screens/messages.dart';
 import 'package:jcrg_phone/screens/home.dart';
+import 'package:jcrg_phone/screens/report.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
@@ -62,6 +63,8 @@ class MyApp extends StatelessWidget {
         '/workers': (context) => const WorkerScreen(),
         '/notifications': (context) => const NotificationScreen(),
         '/messages': (context) => const MessagesScreen(),
+        '/report': (context) => const ReportScreen(),
+
       },
     );
   }

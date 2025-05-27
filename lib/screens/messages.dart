@@ -19,9 +19,9 @@ class MessagesScreen extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
+                  Color(0xFF0D47A1), // Azul profundo
                   Color(0xFF2196F3), // Azul estándar
                   Color(0xFF64B5F6), // Azul intermedio
-                  Color(0xFFBBDEFB), // Azul claro
                 ],
               ),
             ),

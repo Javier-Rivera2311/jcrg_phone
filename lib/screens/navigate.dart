@@ -6,6 +6,7 @@ import 'contact.dart';
 import 'meetings.dart';
 import 'workers.dart';
 import 'notifications.dart';
+import 'report.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -21,13 +22,14 @@ class _HomePageState extends State<HomePage> {
 
   // Lista de pantallas
   final screens = [
-    const Home(), // Llama la vista HomeScreen
-    const TaskScreen(), // llama a la vista de tareas
-    const ContactScreen(), // Llama la vista contacto
-    const MeetingScreen(), // Llama la vista reuniones
-    const WorkerScreen(), // Llama la vista Screen5
-    const NotificationScreen(), // Llama la vista Screen6
-    const MessagesScreen(), // Llama la vista Screen2
+    const Home(),
+    const TaskScreen(),
+    const ContactScreen(),
+    const MeetingScreen(),
+    const WorkerScreen(),
+    const NotificationScreen(),
+    const MessagesScreen(),
+    const ReportScreen(), // <-- Asegúrate de que este widget existe
   ];
 
   final colors = [
@@ -38,7 +40,7 @@ class _HomePageState extends State<HomePage> {
     Color(0xFF2962FF), // Azul eléctrico, personal
     Color(0xFF1976D2), // Azul vibrante, notificaciones
     Color(0xFF0D47A1), // Azul profundo
-    Color(0xFFBBDEFB), // Azul muy claro, mensajes
+    Color.fromARGB(255, 255, 33, 33), // Azul muy claro, mensajes
     Color(0xFF82B1FF), // Azul pastel
   ];
 
@@ -58,7 +60,7 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               // Cambia al índice de la pantalla de mensajes
               setState(() {
-                _currentIndex = 1; // Índice de la pantalla de mensajes
+                _currentIndex = 6; // Índice correcto de la pantalla de mensajes
               });
             },
           ),
@@ -136,6 +138,14 @@ class _HomePageState extends State<HomePage> {
                       Navigator.pop(context);
                     },
                   ),
+                  ListTile(
+                    leading: const Icon(Icons.report),
+                    title: const Text('Reportar problema'),
+                    onTap: () {
+                      setState(() => _currentIndex = 7);
+                      Navigator.pop(context);
+                    },
+                  ),
                 ],
               ),
             ),
@@ -162,13 +172,15 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      body: screens[_currentIndex],
+      body: _currentIndex < screens.length
+          ? screens[_currentIndex]
+          : const Center(child: Text('Pantalla no encontrada')),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         margin: const EdgeInsets.only(bottom: 10),
         child: GNav(
-          color: colors[_currentIndex],
-          tabBackgroundColor: colors[_currentIndex],
+          color: colors[_currentIndex % colors.length], // Previene error de rango
+          tabBackgroundColor: colors[_currentIndex % colors.length],
           selectedIndex: _currentIndex,
           tabBorderRadius: 10,
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
