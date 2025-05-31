@@ -64,7 +64,6 @@ class MyApp extends StatelessWidget {
         '/notifications': (context) => const NotificationScreen(),
         '/messages': (context) => const MessagesScreen(),
         '/report': (context) => const ReportScreen(),
-
       },
     );
   }
