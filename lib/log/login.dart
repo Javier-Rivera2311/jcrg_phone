@@ -18,52 +18,53 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoading = false;
   String? errorMessage;
 
- void _login() async {
-  setState(() {
-    isLoading = true;
-    errorMessage = null;
-  });
+  void _login() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
 
-  final url = Uri.parse('https://backend-jcrg.onrender.com/user/login');
+    final url = Uri.parse('https://backend-jcrg.onrender.com/user/login');
 
-  final body = {
-    "email": emailController.text.trim(),
-    "password": passwordController.text,
-  };
+    final body = {
+      "email": emailController.text.trim(),
+      "password": passwordController.text,
+    };
 
-  try {
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode(body),
-    );
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
 
-    final data = json.decode(response.body);
+      final data = json.decode(response.body);
 
-    if (response.statusCode == 200 && data['success'] == true) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isLoggedIn', true);
-      await prefs.setString('userName', data['name'] ?? '');
-      await prefs.setString('userEmail', data['email']);
-      await prefs.setInt('department_id', data['department_id']);
-
-      Navigator.pushReplacementNamed(context, '/home');
-    } else {
+      if (response.statusCode == 200 && data['success'] == true) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        await prefs.setString('userName', data['name'] ?? '');
+        await prefs.setString('userEmail', data['email']);
+        await prefs.setInt('department_id', data['department_id']);
+        await prefs.setString(
+            'token', data['token']); // <-- Guarda el token aquí
+        print('Token guardado: ${data['token']}');
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        setState(() {
+          errorMessage = data['error'] ?? 'Credenciales inválidas';
+        });
+      }
+    } catch (e) {
       setState(() {
-        errorMessage = data['error'] ?? 'Credenciales inválidas';
+        errorMessage = "Error de red: $e";
       });
     }
-  } catch (e) {
+
     setState(() {
-      errorMessage = "Error de red: $e";
+      isLoading = false;
     });
   }
-
-  setState(() {
-    isLoading = false;
-  });
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -139,8 +140,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     style: const TextStyle(color: Colors.white),
                     keyboardType: TextInputType.emailAddress,
-                    validator: (value) =>
-                        value == null || value.isEmpty ? "Ingrese su correo" : null,
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Ingrese su correo"
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -158,14 +160,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     style: const TextStyle(color: Colors.white),
                     obscureText: true,
-                    validator: (value) =>
-                        value == null || value.isEmpty ? "Ingrese su contraseña" : null,
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Ingrese su contraseña"
+                        : null,
                   ),
                   const SizedBox(height: 24),
                   if (errorMessage != null)
                     Text(
                       errorMessage!,
-                      style: const TextStyle(color: Colors.yellowAccent, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          color: Colors.yellowAccent,
+                          fontWeight: FontWeight.bold),
                     ),
                   const SizedBox(height: 8),
                   SizedBox(
@@ -185,12 +190,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        textStyle: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                         elevation: 4,
                       ),
                       child: isLoading
                           ? const CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
                             )
                           : const Text("Ingresar"),
                     ),
@@ -204,12 +211,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFF1976D2),
-                        side: const BorderSide(color: Color(0xFF1976D2), width: 2),
+                        side: const BorderSide(
+                            color: Color(0xFF1976D2), width: 2),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        textStyle: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       child: const Text("Registrar"),
                     ),
