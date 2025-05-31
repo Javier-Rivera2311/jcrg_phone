@@ -50,7 +50,7 @@ class _HomePageState extends State<HomePage> {
     Color(0xFF2962FF), // Azul eléctrico, personal
     Color(0xFF1976D2), // Azul vibrante, notificaciones
     Color(0xFF0D47A1), // Azul profundo
-    Color.fromARGB(255, 255, 33, 33), // Azul muy claro, mensajes
+    Color.fromARGB(255, 255, 33, 33), // reportar problema
     Color(0xFF82B1FF), // Azul pastel
   ];
 
