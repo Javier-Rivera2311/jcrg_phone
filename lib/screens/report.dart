@@ -70,78 +70,11 @@ class _ReportScreenState extends State<ReportScreen> {
 
         final isAuthorizedUser = snapshot.data!;
 
-        return Scaffold(
-          appBar: PreferredSize(
-            preferredSize: const Size.fromHeight(kToolbarHeight),
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color.fromARGB(255, 255, 33, 33), // Rojo principal
-                    Color.fromARGB(255, 255, 100, 100), // Primer tono más claro
-                    Color.fromARGB(
-                        255, 255, 160, 160), // Segundo tono más claro
-                  ],
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(20.0),
-                  bottomRight: Radius.circular(20.0),
-                ),
-              ),
-              child: AppBar(
-                title: const Text('Reportar Problema'),
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-              ),
-            ),
-          ),
-          body: isAuthorizedUser
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Vista especial para usuarios autorizados',
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.qr_code),
-                        label: const Text('Verificar Ticket'),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const CheckTicketView()),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.add),
-                        label: const Text('Generar Ticket'),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    const GenerateTicketView()),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                )
-              : const Center(
-                  child: Text(
-                    'Vista estándar: No tienes acceso especial.',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                ),
-        );
+        // Si es usuario autorizado (department_id == 4), muestra CheckTicketView
+        // Si no, muestra GenerateTicketView
+        return isAuthorizedUser
+            ? const CheckTicketView()
+            : const GenerateTicketView();
       },
     );
   }
