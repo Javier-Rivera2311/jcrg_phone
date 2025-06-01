@@ -51,6 +51,10 @@ class _CheckTicketViewState extends State<CheckTicketView> {
           : '',
     );
 
+    TextEditingController responseController = TextEditingController(
+      text: ticket['support_response'] ?? '',
+    );
+
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -105,6 +109,15 @@ class _CheckTicketViewState extends State<CheckTicketView> {
                       },
                     ),
                   ],
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: responseController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Respuesta de soporte',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 TextField(
@@ -164,6 +177,7 @@ class _CheckTicketViewState extends State<CheckTicketView> {
                   selectedStatus,
                   selectedPriority,
                   selectedResolutionDate,
+                  responseController.text,
                 );
                 Navigator.pop(context);
               },
@@ -175,8 +189,13 @@ class _CheckTicketViewState extends State<CheckTicketView> {
     );
   }
 
-  Future<void> updateTicketStatusPriority(Map<String, dynamic> ticket,
-      String status, String priority, String? resolutionDate) async {
+  Future<void> updateTicketStatusPriority(
+      Map<String, dynamic> ticket,
+      String status,
+      String priority,
+      String? resolutionDate,
+      String supportResponse,
+    ) async {
     final response = await http.put(
       Uri.parse(
           'https://backend-jcrg.onrender.com/user/updateTicket/${ticket['id']}'),
@@ -186,6 +205,7 @@ class _CheckTicketViewState extends State<CheckTicketView> {
         'status': status,
         'priority': priority,
         'resolution_date': resolutionDate,
+        'support_response': supportResponse,
       }),
     );
     if (response.statusCode == 200) {
