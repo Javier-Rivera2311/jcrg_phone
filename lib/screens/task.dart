@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jcrg_phone/widgets/formularyTask.dart';
 
 class TaskScreen extends StatelessWidget {
   const TaskScreen({super.key});
@@ -42,6 +43,16 @@ class TaskScreen extends StatelessWidget {
           '¡Bienvenido a la lista de tareas!',
           style: TextStyle(fontSize: 20),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const FormularyTask()),
+          );
+        },
+        child: const Icon(Icons.add),
+        tooltip: 'Agregar tarea',
       ),
     );
   }
