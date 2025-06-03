@@ -190,12 +190,12 @@ class _CheckTicketViewState extends State<CheckTicketView> {
   }
 
   Future<void> updateTicketStatusPriority(
-      Map<String, dynamic> ticket,
-      String status,
-      String priority,
-      String? resolutionDate,
-      String supportResponse,
-    ) async {
+    Map<String, dynamic> ticket,
+    String status,
+    String priority,
+    String? resolutionDate,
+    String supportResponse,
+  ) async {
     final response = await http.put(
       Uri.parse(
           'https://backend-jcrg.onrender.com/user/updateTicket/${ticket['id']}'),
@@ -254,8 +254,30 @@ class _CheckTicketViewState extends State<CheckTicketView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Verificar Ticket'),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color.fromARGB(255, 255, 33, 33),
+                Color.fromARGB(255, 255, 100, 100),
+                Color.fromARGB(255, 255, 180, 180),
+              ],
+            ),
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(20.0), // Bordes redondeados en la esquina inferior izquierda
+              bottomRight: Radius.circular(20.0), // Bordes redondeados en la esquina inferior derecha
+            ),
+          ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: const Text('Verificar Ticket'),
+          ),
+        ),
       ),
       body: FutureBuilder<List<dynamic>>(
         future: ticketsFuture,
@@ -270,6 +292,14 @@ class _CheckTicketViewState extends State<CheckTicketView> {
           if (tickets.isEmpty) {
             return const Center(child: Text('No hay tickets disponibles.'));
           }
+          // Ordenar de más reciente a más vieja por 'creation_date'
+          tickets.sort((a, b) {
+            final aDate =
+                DateTime.tryParse(a['creation_date'] ?? '') ?? DateTime(1970);
+            final bDate =
+                DateTime.tryParse(b['creation_date'] ?? '') ?? DateTime(1970);
+            return bDate.compareTo(aDate);
+          });
           return ListView.separated(
             itemCount: tickets.length,
             separatorBuilder: (_, __) => const Divider(height: 1),
