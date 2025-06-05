@@ -13,6 +13,7 @@ class _FormularyTaskState extends State<FormularyTask> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _dateFinishController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
 
   List<String> _workersList = [];
   List<Map<String, dynamic>> _categoriesList = [];
@@ -53,6 +54,14 @@ class _FormularyTaskState extends State<FormularyTask> {
     }
   }
 
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _dateFinishController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
   Future<void> submitForm() async {
     final url = Uri.parse('https://backend-jcrg.onrender.com/user/addTask');
     // Buscar el nombre de la categoría seleccionada
@@ -67,9 +76,10 @@ class _FormularyTaskState extends State<FormularyTask> {
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         "title": _titleController.text,
+        "description": _descriptionController.text,
         "date_finish": _dateFinishController.text,
         "workers": _selectedWorkers.join(', '),
-        "category_name": selectedCategoryName, // Usar la variable adaptada
+        "category_name": selectedCategoryName,
       }),
     );
 
@@ -79,6 +89,7 @@ class _FormularyTaskState extends State<FormularyTask> {
       );
       _formKey.currentState?.reset();
       _titleController.clear();
+      _descriptionController.clear();
       _dateFinishController.clear();
       setState(() {
         _selectedCategoryId = null;
@@ -105,6 +116,11 @@ class _FormularyTaskState extends State<FormularyTask> {
                 controller: _titleController,
                 decoration: const InputDecoration(labelText: 'Título'),
                 validator: (value) => value == null || value.isEmpty ? 'Ingrese el título' : null,
+              ),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(labelText: 'Descripción'),
+                validator: (value) => value == null || value.isEmpty ? 'Ingrese la descripción' : null,
               ),
               TextFormField(
                 controller: _dateFinishController,

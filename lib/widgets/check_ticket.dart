@@ -276,6 +276,7 @@ class _CheckTicketViewState extends State<CheckTicketView> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             title: const Text('Verificar Ticket'),
+            centerTitle: true,
           ),
         ),
       ),
