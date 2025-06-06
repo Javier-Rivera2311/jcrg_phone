@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class FormularyTask extends StatefulWidget {
   const FormularyTask({super.key});
@@ -9,23 +11,96 @@ class FormularyTask extends StatefulWidget {
 
 class _FormularyTaskState extends State<FormularyTask> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _idController = TextEditingController();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _dateFinishController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
 
-  String? _selectedDepartment;
-  String? _selectedState;
-  List<String> _selectedWorkers = [];
+  List<String> _workersList = [];
+  List<Map<String, dynamic>> _categoriesList = [];
+
   String? _selectedCategoryId;
+  List<String> _selectedWorkers = [];
 
-  final List<String> departments = ['1', '2', '3', '4', '5'];
-  final List<String> states = ['pendiente', 'en progreso', 'completada'];
-  final List<String> workers = [
-    'Trabajador 1', 'Trabajador 2', 'Trabajador 3', 'Trabajador 4', 'Trabajador 5'
-  ];
-  final List<String> categories = [
-    '1', '2', '3', '4', '5'
-  ];
+  @override
+  void initState() {
+    super.initState();
+    fetchWorkers();
+    fetchCategories();
+  }
+
+  Future<void> fetchWorkers() async {
+    final response = await http.get(Uri.parse('https://backend-jcrg.onrender.com/user/listWorker'));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final meetings = data['meetings'];
+      setState(() {
+        _workersList = meetings != null
+            ? List<String>.from(meetings.map((w) => w['Name']))
+            : [];
+      });
+    }
+  }
+
+  Future<void> fetchCategories() async {
+    final response = await http.get(Uri.parse('https://backend-jcrg.onrender.com/user/Category'));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final meetings = data['meetings'];
+      setState(() {
+        _categoriesList = meetings != null
+            ? List<Map<String, dynamic>>.from(meetings)
+            : [];
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _dateFinishController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  Future<void> submitForm() async {
+    final url = Uri.parse('https://backend-jcrg.onrender.com/user/addTask');
+    // Buscar el nombre de la categoría seleccionada
+    final selectedCategory = _categoriesList.firstWhere(
+      (cat) => cat['id'].toString() == _selectedCategoryId,
+      orElse: () => {},
+    );
+    final selectedCategoryName = selectedCategory['name'] ?? '';
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        "title": _titleController.text,
+        "description": _descriptionController.text,
+        "date_finish": _dateFinishController.text,
+        "workers": _selectedWorkers.join(', '),
+        "category_name": selectedCategoryName,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tarea creada correctamente')),
+      );
+      _formKey.currentState?.reset();
+      _titleController.clear();
+      _descriptionController.clear();
+      _dateFinishController.clear();
+      setState(() {
+        _selectedCategoryId = null;
+        _selectedWorkers = [];
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al crear la tarea')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,29 +113,14 @@ class _FormularyTaskState extends State<FormularyTask> {
           child: ListView(
             children: [
               TextFormField(
-                controller: _idController,
-                decoration: const InputDecoration(labelText: 'ID'),
-                keyboardType: TextInputType.number,
-                validator: (value) => value == null || value.isEmpty ? 'Ingrese el ID' : null,
-              ),
-              TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(labelText: 'Título'),
                 validator: (value) => value == null || value.isEmpty ? 'Ingrese el título' : null,
               ),
-              DropdownButtonFormField<String>(
-                value: _selectedDepartment,
-                decoration: const InputDecoration(labelText: 'Departamento'),
-                items: departments.map((dep) => DropdownMenuItem(value: dep, child: Text('Departamento $dep'))).toList(),
-                onChanged: (value) => setState(() => _selectedDepartment = value),
-                validator: (value) => value == null ? 'Seleccione un departamento' : null,
-              ),
-              DropdownButtonFormField<String>(
-                value: _selectedState,
-                decoration: const InputDecoration(labelText: 'Estado'),
-                items: states.map((state) => DropdownMenuItem(value: state, child: Text(state))).toList(),
-                onChanged: (value) => setState(() => _selectedState = value),
-                validator: (value) => value == null ? 'Seleccione un estado' : null,
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(labelText: 'Descripción'),
+                validator: (value) => value == null || value.isEmpty ? 'Ingrese la descripción' : null,
               ),
               TextFormField(
                 controller: _dateFinishController,
@@ -81,43 +141,49 @@ class _FormularyTaskState extends State<FormularyTask> {
               ),
               GestureDetector(
                 onTap: () async {
-                  final List<String> result = await showDialog(
+                  final List<String>? result = await showDialog(
                     context: context,
                     builder: (context) {
                       List<String> tempSelected = List.from(_selectedWorkers);
-                      return AlertDialog(
-                        title: const Text('Selecciona trabajadores'),
-                        content: SizedBox(
-                          width: double.maxFinite,
-                          child: ListView(
-                            shrinkWrap: true,
-                            children: workers.map((worker) {
-                              return CheckboxListTile(
-                                value: tempSelected.contains(worker),
-                                title: Text(worker),
-                                onChanged: (checked) {
-                                  setState(() {
-                                    if (checked == true) {
-                                      tempSelected.add(worker);
-                                    } else {
-                                      tempSelected.remove(worker);
-                                    }
-                                  });
-                                },
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, _selectedWorkers),
-                            child: const Text('Cancelar'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () => Navigator.pop(context, tempSelected),
-                            child: const Text('Aceptar'),
-                          ),
-                        ],
+                      return StatefulBuilder(
+                        builder: (context, setStateDialog) {
+                          return AlertDialog(
+                            title: const Text('Selecciona trabajadores'),
+                            content: SizedBox(
+                              width: double.maxFinite,
+                              child: ListView(
+                                shrinkWrap: true,
+                                children: _workersList.map((worker) {
+                                  return CheckboxListTile(
+                                    value: tempSelected.contains(worker),
+                                    title: Text(worker),
+                                    onChanged: (checked) {
+                                      setStateDialog(() {
+                                        if (checked == true) {
+                                          if (!tempSelected.contains(worker)) {
+                                            tempSelected.add(worker);
+                                          }
+                                        } else {
+                                          tempSelected.remove(worker);
+                                        }
+                                      });
+                                    },
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, _selectedWorkers),
+                                child: const Text('Cancelar'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(context, tempSelected.toSet().toList()),
+                                child: const Text('Aceptar'),
+                              ),
+                            ],
+                          );
+                        },
                       );
                     },
                   );
@@ -129,7 +195,7 @@ class _FormularyTaskState extends State<FormularyTask> {
                 },
                 child: AbsorbPointer(
                   child: TextFormField(
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Trabajadores',
                       hintText: 'Selecciona uno o más',
                     ),
@@ -142,8 +208,13 @@ class _FormularyTaskState extends State<FormularyTask> {
               ),
               DropdownButtonFormField<String>(
                 value: _selectedCategoryId,
-                decoration: const InputDecoration(labelText: 'Categoría (ID)'),
-                items: categories.map((cat) => DropdownMenuItem(value: cat, child: Text('Categoría $cat'))).toList(),
+                decoration: const InputDecoration(labelText: 'Categoría'),
+                items: _categoriesList.map((cat) {
+                  return DropdownMenuItem<String>(
+                    value: cat['id'].toString(),
+                    child: Text(cat['name']),
+                  );
+                }).toList(),
                 onChanged: (value) => setState(() => _selectedCategoryId = value),
                 validator: (value) => value == null ? 'Seleccione una categoría' : null,
               ),
@@ -151,8 +222,7 @@ class _FormularyTaskState extends State<FormularyTask> {
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    // Procesar datos del formulario
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Formulario válido')));
+                    submitForm();
                   }
                 },
                 child: const Text('Guardar'),
