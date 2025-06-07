@@ -49,67 +49,121 @@ class _EnterContactFormState extends State<EnterContactForm> {
       }
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Agregar Contacto'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Nombre'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa un nombre';
-                  }
-                  return null;
-                },
+      body: Center(
+        child: Card(
+          elevation: 8,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  const Center(
+                    child: CircleAvatar(
+                      radius: 32,
+                      backgroundColor: Colors.blueAccent,
+                      child: Icon(Icons.person, size: 40, color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  TextFormField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Nombre',
+                      prefixIcon: Icon(Icons.person),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor ingresa un nombre';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: emailController,
+                    decoration: const InputDecoration(
+                      labelText: 'Correo',
+                      prefixIcon: Icon(Icons.email),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor ingresa un correo';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: phoneController,
+                    decoration: const InputDecoration(
+                      labelText: 'Teléfono',
+                      prefixIcon: Icon(Icons.phone),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor ingresa un teléfono';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: communeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Comuna',
+                      prefixIcon: Icon(Icons.location_city),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: jobController,
+                    decoration: const InputDecoration(
+                      labelText: 'Trabajo',
+                      prefixIcon: Icon(Icons.work),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: projectController,
+                    decoration: const InputDecoration(
+                      labelText: 'Proyecto',
+                      prefixIcon: Icon(Icons.assignment),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: addContact,
+                    icon: const Icon(Icons.save),
+                    label: const Text('Agregar Contacto'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              TextFormField(
-                controller: emailController,
-                decoration: const InputDecoration(labelText: 'Correo'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa un correo';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: phoneController,
-                decoration: const InputDecoration(labelText: 'Teléfono'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa un teléfono';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: communeController,
-                decoration: const InputDecoration(labelText: 'Comuna'),
-              ),
-              TextFormField(
-                controller: jobController,
-                decoration: const InputDecoration(labelText: 'Trabajo'),
-              ),
-              TextFormField(
-                controller: projectController,
-                decoration: const InputDecoration(labelText: 'Proyecto'),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: addContact,
-                child: const Text('Agregar Contacto'),
-              ),
-            ],
-            
+            ),
           ),
         ),
       ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:jcrg_phone/widgets/formularyTask.dart';
-import 'task_detail_screen.dart';
+import '../widgets/task_detail_screen.dart';
 
 class TaskScreen extends StatefulWidget {
   const TaskScreen({super.key});
@@ -23,7 +23,8 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   Future<void> fetchTasks() async {
-    final response = await http.get(Uri.parse('https://backend-jcrg.onrender.com/user/getTasks'));
+    final response = await http
+        .get(Uri.parse('https://backend-jcrg.onrender.com/user/getTasks'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -94,7 +95,8 @@ class _TaskScreenState extends State<TaskScreen> {
               child: AppBar(
                 title: const Text(
                   'Tareas',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 centerTitle: true,
                 backgroundColor: Colors.transparent,
@@ -128,7 +130,8 @@ class _TaskScreenState extends State<TaskScreen> {
                   hintText: 'Buscar por título o trabajador',
                   prefixIcon: const Icon(Icons.search, color: Colors.grey),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
                 ),
                 onChanged: (value) {
                   setState(() {
@@ -149,7 +152,8 @@ class _TaskScreenState extends State<TaskScreen> {
                         filteredGroupedTasks.forEach((category, tasks) {
                           tiles.add(
                             Card(
-                              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 8),
                               child: ExpansionTile(
                                 title: Text(
                                   category,
@@ -161,13 +165,15 @@ class _TaskScreenState extends State<TaskScreen> {
                                 ),
                                 children: tasks.map((task) {
                                   return Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12.0, vertical: 6),
                                     child: GestureDetector(
                                       onTap: () async {
                                         final changed = await Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (_) => TaskDetailScreen(task: task),
+                                            builder: (_) =>
+                                                TaskDetailScreen(task: task),
                                           ),
                                         );
                                         if (changed == true) {
@@ -183,20 +189,25 @@ class _TaskScreenState extends State<TaskScreen> {
                                                     ? Colors.red[100]
                                                     : Colors.white,
                                         elevation: 3,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(14)),
                                         child: Padding(
                                           padding: const EdgeInsets.all(14.0),
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Row(
                                                 children: [
-                                                  const Icon(Icons.assignment, color: Colors.blue),
+                                                  const Icon(Icons.assignment,
+                                                      color: Colors.blue),
                                                   const SizedBox(width: 10),
                                                   Expanded(
                                                     child: Text(task['title'],
                                                         style: const TextStyle(
-                                                          fontWeight: FontWeight.bold,
+                                                          fontWeight:
+                                                              FontWeight.bold,
                                                           fontSize: 16,
                                                         )),
                                                   ),
@@ -204,8 +215,10 @@ class _TaskScreenState extends State<TaskScreen> {
                                               ),
                                               const SizedBox(height: 8),
                                               Text("Estado: ${task['state']}"),
-                                              Text("Fecha: ${task['date_finish'].toString().split('T')[0]}"),
-                                              Text("Trabajadores: ${task['workers']}"),
+                                              Text(
+                                                  "Fecha: ${task['date_finish'].toString().split('T')[0]}"),
+                                              Text(
+                                                  "Trabajadores: ${task['workers']}"),
                                             ],
                                           ),
                                         ),
@@ -229,7 +242,8 @@ class _TaskScreenState extends State<TaskScreen> {
                             left: 12,
                             right: 12,
                             top: 12,
-                            bottom: 80, // <-- Agrega padding inferior para evitar que el botón flote sobre el contenido
+                            bottom:
+                                80, // <-- Agrega padding inferior para evitar que el botón flote sobre el contenido
                           ),
                           children: filteredGroupedTasks.entries.map((entry) {
                             final category = entry.key;
@@ -246,13 +260,15 @@ class _TaskScreenState extends State<TaskScreen> {
                               ),
                               children: tasks.map((task) {
                                 return Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12.0, vertical: 6),
                                   child: GestureDetector(
                                     onTap: () async {
                                       final changed = await Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (_) => TaskDetailScreen(task: task),
+                                          builder: (_) =>
+                                              TaskDetailScreen(task: task),
                                         ),
                                       );
                                       if (changed == true) {
@@ -268,20 +284,25 @@ class _TaskScreenState extends State<TaskScreen> {
                                                   ? Colors.red[100]
                                                   : Colors.white,
                                       elevation: 3,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(14)),
                                       child: Padding(
                                         padding: const EdgeInsets.all(14.0),
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Row(
                                               children: [
-                                                const Icon(Icons.assignment, color: Colors.blue),
+                                                const Icon(Icons.assignment,
+                                                    color: Colors.blue),
                                                 const SizedBox(width: 10),
                                                 Expanded(
                                                   child: Text(task['title'],
                                                       style: const TextStyle(
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight:
+                                                            FontWeight.bold,
                                                         fontSize: 16,
                                                       )),
                                                 ),
@@ -289,8 +310,10 @@ class _TaskScreenState extends State<TaskScreen> {
                                             ),
                                             const SizedBox(height: 8),
                                             Text("Estado: ${task['state']}"),
-                                            Text("Fecha: ${task['date_finish'].toString().split('T')[0]}"),
-                                            Text("Trabajadores: ${task['workers']}"),
+                                            Text(
+                                                "Fecha: ${task['date_finish'].toString().split('T')[0]}"),
+                                            Text(
+                                                "Trabajadores: ${task['workers']}"),
                                           ],
                                         ),
                                       ),

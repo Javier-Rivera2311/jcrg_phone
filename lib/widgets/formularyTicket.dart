@@ -21,7 +21,6 @@ class _FormularyTicketState extends State<FormularyTicket> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
-  String status = 'Abierto';
   String priority = 'Baja';
 
   bool isLoading = false;
@@ -63,84 +62,102 @@ class _FormularyTicketState extends State<FormularyTicket> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Crear Ticket')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Título',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Ingrese un título' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Descripción',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Ingrese una descripción'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: status,
-                decoration: const InputDecoration(
-                  labelText: 'Estado',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'Abierto', child: Text('Abierto')),
-                  DropdownMenuItem(value: 'Cerrado', child: Text('Cerrado')),
-                  DropdownMenuItem(
-                      value: 'En progreso', child: Text('En Progreso')),
-                ],
-                onChanged: (value) {
-                  if (value != null) setState(() => status = value);
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: priority,
-                decoration: const InputDecoration(
-                  labelText: 'Prioridad',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'Baja', child: Text('Baja')),
-                  DropdownMenuItem(value: 'Media', child: Text('Media')),
-                  DropdownMenuItem(value: 'Alta', child: Text('Alta')),
-                ],
-                onChanged: (value) {
-                  if (value != null) setState(() => priority = value);
-                },
-              ),
-              const SizedBox(height: 24),
-              isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          setState(() => isLoading = true);
-                          await createTicket(
-                            titleController.text,
-                            descriptionController.text,
-                            priority,
-                          );
-                          setState(() => isLoading = false);
-                        }
-                      },
-                      child: const Text('Crear Ticket'),
+      body: Center(
+        child: Card(
+          elevation: 8,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  const Center(
+                    child: CircleAvatar(
+                      radius: 32,
+                      backgroundColor: Colors.deepPurple,
+                      child: Icon(Icons.confirmation_number,
+                          size: 40, color: Colors.white),
                     ),
-            ],
+                  ),
+                  const SizedBox(height: 18),
+                  TextFormField(
+                    controller: titleController,
+                    decoration: const InputDecoration(
+                      labelText: 'Título',
+                      prefixIcon: Icon(Icons.title),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Ingrese un título'
+                        : null,
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: descriptionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Descripción',
+                      prefixIcon: Icon(Icons.description),
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Ingrese una descripción'
+                        : null,
+                  ),
+                  const SizedBox(height: 14),
+                  DropdownButtonFormField<String>(
+                    value: priority,
+                    decoration: const InputDecoration(
+                      labelText: 'Prioridad',
+                      prefixIcon: Icon(Icons.priority_high),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'Baja', child: Text('Baja')),
+                      DropdownMenuItem(value: 'Media', child: Text('Media')),
+                      DropdownMenuItem(value: 'Alta', child: Text('Alta')),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) setState(() => priority = value);
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ElevatedButton.icon(
+                          onPressed: () async {
+                            if (_formKey.currentState!.validate()) {
+                              setState(() => isLoading = true);
+                              await createTicket(
+                                titleController.text,
+                                descriptionController.text,
+                                priority,
+                              );
+                              setState(() => isLoading = false);
+                            }
+                          },
+                          icon: const Icon(Icons.save, color: Colors.white),
+                          label: const Text(
+                            'Crear Ticket',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.deepPurple,
+                            minimumSize: const Size.fromHeight(48),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

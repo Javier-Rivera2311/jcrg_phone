@@ -29,7 +29,8 @@ class _FormularyTaskState extends State<FormularyTask> {
   }
 
   Future<void> fetchWorkers() async {
-    final response = await http.get(Uri.parse('https://backend-jcrg.onrender.com/user/listWorker'));
+    final response = await http
+        .get(Uri.parse('https://backend-jcrg.onrender.com/user/listWorker'));
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final meetings = data['meetings'];
@@ -42,14 +43,14 @@ class _FormularyTaskState extends State<FormularyTask> {
   }
 
   Future<void> fetchCategories() async {
-    final response = await http.get(Uri.parse('https://backend-jcrg.onrender.com/user/Category'));
+    final response = await http
+        .get(Uri.parse('https://backend-jcrg.onrender.com/user/Category'));
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final meetings = data['meetings'];
       setState(() {
-        _categoriesList = meetings != null
-            ? List<Map<String, dynamic>>.from(meetings)
-            : [];
+        _categoriesList =
+            meetings != null ? List<Map<String, dynamic>>.from(meetings) : [];
       });
     }
   }
@@ -106,128 +107,197 @@ class _FormularyTaskState extends State<FormularyTask> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Formulario de Tarea')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Título'),
-                validator: (value) => value == null || value.isEmpty ? 'Ingrese el título' : null,
-              ),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Descripción'),
-                validator: (value) => value == null || value.isEmpty ? 'Ingrese la descripción' : null,
-              ),
-              TextFormField(
-                controller: _dateFinishController,
-                decoration: const InputDecoration(labelText: 'Fecha de finalización'),
-                readOnly: true,
-                onTap: () async {
-                  DateTime? picked = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2100),
-                  );
-                  if (picked != null) {
-                    _dateFinishController.text = picked.toLocal().toString().split(' ')[0];
-                  }
-                },
-                validator: (value) => value == null || value.isEmpty ? 'Seleccione la fecha' : null,
-              ),
-              GestureDetector(
-                onTap: () async {
-                  final List<String>? result = await showDialog(
-                    context: context,
-                    builder: (context) {
-                      List<String> tempSelected = List.from(_selectedWorkers);
-                      return StatefulBuilder(
-                        builder: (context, setStateDialog) {
-                          return AlertDialog(
-                            title: const Text('Selecciona trabajadores'),
-                            content: SizedBox(
-                              width: double.maxFinite,
-                              child: ListView(
-                                shrinkWrap: true,
-                                children: _workersList.map((worker) {
-                                  return CheckboxListTile(
-                                    value: tempSelected.contains(worker),
-                                    title: Text(worker),
-                                    onChanged: (checked) {
-                                      setStateDialog(() {
-                                        if (checked == true) {
-                                          if (!tempSelected.contains(worker)) {
-                                            tempSelected.add(worker);
-                                          }
-                                        } else {
-                                          tempSelected.remove(worker);
-                                        }
-                                      });
-                                    },
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, _selectedWorkers),
-                                child: const Text('Cancelar'),
-                              ),
-                              ElevatedButton(
-                                onPressed: () => Navigator.pop(context, tempSelected.toSet().toList()),
-                                child: const Text('Aceptar'),
-                              ),
-                            ],
+      body: Center(
+        child: Card(
+          elevation: 8,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  const Center(
+                    child: CircleAvatar(
+                      radius: 32,
+                      backgroundColor: Colors.blueAccent,
+                      child:
+                          Icon(Icons.assignment, size: 40, color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  TextFormField(
+                    controller: _titleController,
+                    decoration: const InputDecoration(
+                      labelText: 'Título',
+                      prefixIcon: Icon(Icons.title),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Ingrese el título'
+                        : null,
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: _descriptionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Descripción',
+                      prefixIcon: Icon(Icons.description),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Ingrese la descripción'
+                        : null,
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: _dateFinishController,
+                    decoration: const InputDecoration(
+                      labelText: 'Fecha de finalización',
+                      prefixIcon: Icon(Icons.calendar_today),
+                      border: OutlineInputBorder(),
+                    ),
+                    readOnly: true,
+                    onTap: () async {
+                      DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) {
+                        _dateFinishController.text =
+                            picked.toLocal().toString().split(' ')[0];
+                      }
+                    },
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Seleccione la fecha'
+                        : null,
+                  ),
+                  const SizedBox(height: 14),
+                  GestureDetector(
+                    onTap: () async {
+                      final List<String>? result = await showDialog(
+                        context: context,
+                        builder: (context) {
+                          List<String> tempSelected =
+                              List.from(_selectedWorkers);
+                          return StatefulBuilder(
+                            builder: (context, setStateDialog) {
+                              return AlertDialog(
+                                title: const Text('Selecciona trabajadores'),
+                                content: SizedBox(
+                                  width: double.maxFinite,
+                                  child: ListView(
+                                    shrinkWrap: true,
+                                    children: _workersList.map((worker) {
+                                      return CheckboxListTile(
+                                        value: tempSelected.contains(worker),
+                                        title: Text(worker),
+                                        onChanged: (checked) {
+                                          setStateDialog(() {
+                                            if (checked == true) {
+                                              if (!tempSelected
+                                                  .contains(worker)) {
+                                                tempSelected.add(worker);
+                                              }
+                                            } else {
+                                              tempSelected.remove(worker);
+                                            }
+                                          });
+                                        },
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(
+                                        context, _selectedWorkers),
+                                    child: const Text('Cancelar'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () => Navigator.pop(
+                                        context, tempSelected.toSet().toList()),
+                                    child: const Text('Aceptar'),
+                                  ),
+                                ],
+                              );
+                            },
                           );
                         },
                       );
+                      if (result != null) {
+                        setState(() {
+                          _selectedWorkers = result;
+                        });
+                      }
                     },
-                  );
-                  if (result != null) {
-                    setState(() {
-                      _selectedWorkers = result;
-                    });
-                  }
-                },
-                child: AbsorbPointer(
-                  child: TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'Trabajadores',
-                      hintText: 'Selecciona uno o más',
+                    child: AbsorbPointer(
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Trabajadores',
+                          hintText: 'Selecciona uno o más',
+                          prefixIcon: Icon(Icons.people),
+                          border: OutlineInputBorder(),
+                        ),
+                        controller: TextEditingController(
+                          text: _selectedWorkers.isEmpty
+                              ? ''
+                              : _selectedWorkers.join(', '),
+                        ),
+                        validator: (value) => _selectedWorkers.isEmpty
+                            ? 'Seleccione al menos un trabajador'
+                            : null,
+                      ),
                     ),
-                    controller: TextEditingController(
-                      text: _selectedWorkers.isEmpty ? '' : _selectedWorkers.join(', '),
-                    ),
-                    validator: (value) => _selectedWorkers.isEmpty ? 'Seleccione al menos un trabajador' : null,
                   ),
-                ),
+                  const SizedBox(height: 14),
+                  DropdownButtonFormField<String>(
+                    value: _selectedCategoryId,
+                    decoration: const InputDecoration(
+                      labelText: 'Categoría',
+                      prefixIcon: Icon(Icons.category),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: _categoriesList.map((cat) {
+                      return DropdownMenuItem<String>(
+                        value: cat['id'].toString(),
+                        child: Text(cat['name']),
+                      );
+                    }).toList(),
+                    onChanged: (value) =>
+                        setState(() => _selectedCategoryId = value),
+                    validator: (value) =>
+                        value == null ? 'Seleccione una categoría' : null,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        submitForm();
+                      }
+                    },
+                    icon: const Icon(Icons.save, color: Colors.white),
+                    label: const Text(
+                      'Guardar',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              DropdownButtonFormField<String>(
-                value: _selectedCategoryId,
-                decoration: const InputDecoration(labelText: 'Categoría'),
-                items: _categoriesList.map((cat) {
-                  return DropdownMenuItem<String>(
-                    value: cat['id'].toString(),
-                    child: Text(cat['name']),
-                  );
-                }).toList(),
-                onChanged: (value) => setState(() => _selectedCategoryId = value),
-                validator: (value) => value == null ? 'Seleccione una categoría' : null,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    submitForm();
-                  }
-                },
-                child: const Text('Guardar'),
-              ),
-            ],
+            ),
           ),
         ),
       ),
