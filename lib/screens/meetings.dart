@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jcrg_phone/widgets/formularyMeet.dart';
 
 class MeetingScreen extends StatelessWidget {
   const MeetingScreen({super.key});
@@ -49,11 +50,17 @@ class MeetingScreen extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Aquí puedes navegar a un formulario o mostrar un diálogo para agregar reunión
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Agregar nueva reunión')),
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const FormularyMeet()),
           );
+          if (result == true) {
+            // Aquí puedes refrescar la lista de reuniones si implementas el fetch
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Reunión agregada correctamente')),
+            );
+          }
         },
         child: const Icon(Icons.add),
         tooltip: 'Agregar reunión',
