@@ -12,10 +12,13 @@ class FormularyMeet extends StatefulWidget {
 class _FormularyMeetState extends State<FormularyMeet> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _detailsController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _timeController = TextEditingController();
+  final TextEditingController _urlController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
 
+  String _type = 'virtual'; // 'virtual' o 'presencial'
   bool isLoading = false;
 
   Future<void> submitMeet() async {
@@ -24,19 +27,22 @@ class _FormularyMeetState extends State<FormularyMeet> {
     setState(() => isLoading = true);
 
     final response = await http.post(
-      Uri.parse('https://backend-jcrg.onrender.com/user/addMeet'),
+      Uri.parse('https://backend-jcrg.onrender.com/user/addMeeting'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
-        "title": _titleController.text,
-        "description": _descriptionController.text,
         "date": _dateController.text,
-        "location": _locationController.text,
+        "time": _timeController.text,
+        "type": _type,
+        "Title": _titleController.text,
+        "details": _detailsController.text,
+        "url": _type == 'virtual' ? _urlController.text : null,
+        "address": _type == 'presencial' ? _addressController.text : null,
       }),
     );
 
     setState(() => isLoading = false);
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Reunión creada correctamente')),
       );
@@ -51,9 +57,11 @@ class _FormularyMeetState extends State<FormularyMeet> {
   @override
   void dispose() {
     _titleController.dispose();
-    _descriptionController.dispose();
+    _detailsController.dispose();
     _dateController.dispose();
-    _locationController.dispose();
+    _timeController.dispose();
+    _urlController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
@@ -93,14 +101,14 @@ class _FormularyMeetState extends State<FormularyMeet> {
                   ),
                   const SizedBox(height: 14),
                   TextFormField(
-                    controller: _descriptionController,
+                    controller: _detailsController,
                     decoration: const InputDecoration(
-                      labelText: 'Descripción',
+                      labelText: 'Detalles',
                       prefixIcon: Icon(Icons.description),
                       border: OutlineInputBorder(),
                     ),
                     validator: (value) =>
-                        value == null || value.isEmpty ? 'Ingrese la descripción' : null,
+                        value == null || value.isEmpty ? 'Ingrese los detalles' : null,
                   ),
                   const SizedBox(height: 14),
                   TextFormField(
@@ -128,16 +136,80 @@ class _FormularyMeetState extends State<FormularyMeet> {
                   ),
                   const SizedBox(height: 14),
                   TextFormField(
-                    controller: _locationController,
+                    controller: _timeController,
                     decoration: const InputDecoration(
-                      labelText: 'Lugar',
-                      prefixIcon: Icon(Icons.location_on),
+                      labelText: 'Hora',
+                      prefixIcon: Icon(Icons.access_time),
                       border: OutlineInputBorder(),
                     ),
+                    readOnly: true,
+                    onTap: () async {
+                      TimeOfDay? picked = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.now(),
+                      );
+                      if (picked != null) {
+                        _timeController.text = picked.format(context);
+                      }
+                    },
                     validator: (value) =>
-                        value == null || value.isEmpty ? 'Ingrese el lugar' : null,
+                        value == null || value.isEmpty ? 'Seleccione la hora' : null,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 14),
+                  DropdownButtonFormField<String>(
+                    value: _type,
+                    decoration: const InputDecoration(
+                      labelText: 'Tipo de reunión',
+                      prefixIcon: Icon(Icons.meeting_room),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'presencial',
+                        child: Text('Presencial'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'virtual',
+                        child: Text('Virtual'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _type = value ?? 'presencial';
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  if (_type == 'virtual')
+                    TextFormField(
+                      controller: _urlController,
+                      decoration: const InputDecoration(
+                        labelText: 'URL de la reunión',
+                        prefixIcon: Icon(Icons.link),
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) => _type == 'virtual'
+                          ? (value == null || value.isEmpty
+                              ? 'Ingrese la URL de la reunión'
+                              : null)
+                          : null,
+                    ),
+                  if (_type == 'virtual') const SizedBox(height: 14),
+                  if (_type == 'presencial')
+                    TextFormField(
+                      controller: _addressController,
+                      decoration: const InputDecoration(
+                        labelText: 'Dirección',
+                        prefixIcon: Icon(Icons.location_on),
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) => _type == 'presencial'
+                          ? (value == null || value.isEmpty
+                              ? 'Ingrese la dirección'
+                              : null)
+                          : null,
+                    ),
+                  if (_type == 'presencial') const SizedBox(height: 14),
                   isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : ElevatedButton.icon(
