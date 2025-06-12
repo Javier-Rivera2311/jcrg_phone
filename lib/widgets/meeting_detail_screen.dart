@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
+import 'package:jcrg_phone/widgets/formularyMeet.dart';
 
 class MeetingDetailScreen extends StatelessWidget {
   final Map<String, dynamic> meeting;
@@ -14,12 +15,21 @@ class MeetingDetailScreen extends StatelessWidget {
     String formattedDate = '';
     if (meeting['date'] != null && meeting['date'].toString().isNotEmpty) {
       try {
-        final date = DateTime.parse(meeting['date']);
+        // Soporta fechas tipo '2025-06-26T00:00:00.000Z' y '2025-06-26'
+        String dateStr = meeting['date'].toString();
+        DateTime date = DateTime.parse(dateStr);
         formattedDate = '${date.day.toString().padLeft(2, '0')}-'
             '${date.month.toString().padLeft(2, '0')}-'
             '${date.year}';
       } catch (_) {
-        formattedDate = meeting['date'].toString();
+        // Si falla el parseo, intenta extraer solo la parte de la fecha
+        final dateStr = meeting['date'].toString();
+        final match = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(dateStr);
+        if (match != null) {
+          formattedDate = '${match.group(3)}-${match.group(2)}-${match.group(1)}';
+        } else {
+          formattedDate = dateStr;
+        }
       }
     }
 
@@ -116,14 +126,13 @@ class MeetingDetailScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton.icon(
-                      onPressed: () async {
-                        // Aquí deberías navegar a tu formulario de edición de reunión
-                        final id = meeting['id'] ?? meeting['ID'];
-                        final url = 'https://backend-jcrg.onrender.com/user/updateMeeting/$id';
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Endpoint para editar: $url')),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => FormularyMeet(meeting: meeting),
+                          ),
                         );
-                        // Aquí puedes abrir un formulario de edición real si lo implementas
                       },
                       icon: const Icon(Icons.edit),
                       label: const Text("Editar"),

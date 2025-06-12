@@ -3,7 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class FormularyMeet extends StatefulWidget {
-  const FormularyMeet({super.key});
+  final Map<String, dynamic>? meeting;
+  const FormularyMeet({Key? key, this.meeting}) : super(key: key);
 
   @override
   State<FormularyMeet> createState() => _FormularyMeetState();
@@ -11,15 +12,51 @@ class FormularyMeet extends StatefulWidget {
 
 class _FormularyMeetState extends State<FormularyMeet> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _detailsController = TextEditingController();
-  final TextEditingController _dateController = TextEditingController();
-  final TextEditingController _timeController = TextEditingController();
-  final TextEditingController _urlController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
+  late TextEditingController _titleController;
+  late TextEditingController _detailsController;
+  late TextEditingController _dateController;
+  late TextEditingController _timeController;
+  late TextEditingController _urlController;
+  late TextEditingController _addressController;
 
   String _type = 'virtual'; // 'virtual' o 'presencial'
   bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Corrige el formato de fecha para mostrar solo dd-MM-yyyy en el campo de texto
+    String? rawDate = widget.meeting?['date'];
+    String formattedDate = '';
+    if (rawDate != null && rawDate.isNotEmpty) {
+      try {
+        DateTime date = DateTime.parse(rawDate);
+        formattedDate = '${date.day.toString().padLeft(2, '0')}-'
+            '${date.month.toString().padLeft(2, '0')}-'
+            '${date.year}';
+      } catch (_) {
+        final match = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(rawDate);
+        if (match != null) {
+          formattedDate = '${match.group(3)}-${match.group(2)}-${match.group(1)}';
+        } else {
+          formattedDate = rawDate;
+        }
+      }
+    }
+    _titleController = TextEditingController(
+        text: widget.meeting?['title'] ?? widget.meeting?['Title'] ?? '');
+    _detailsController = TextEditingController(
+        text: widget.meeting?['details'] ?? '');
+    _dateController = TextEditingController(
+        text: formattedDate);
+    _timeController = TextEditingController(
+        text: widget.meeting?['time'] ?? '');
+    _urlController = TextEditingController(
+        text: widget.meeting?['url'] ?? '');
+    _addressController = TextEditingController(
+        text: widget.meeting?['address'] ?? '');
+    _type = widget.meeting?['type'] ?? 'virtual';
+  }
 
   Future<void> submitMeet() async {
     if (!_formKey.currentState!.validate()) return;

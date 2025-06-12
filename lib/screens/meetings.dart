@@ -128,89 +128,147 @@ class _MeetingScreenState extends State<MeetingScreen> {
 
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(isWide ? 100 : 120),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(20.0),
-                bottomRight: Radius.circular(20.0),
-              ),
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF1565C0),
-                      Color(0xFF64B5F6),
-                      Color(0xFFBBDEFB),
-                    ],
-                  ),
-                ),
-                child: AppBar(
-                  title: const Text(
-                    'Reuniones',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  centerTitle: true,
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                ),
+        preferredSize: Size.fromHeight(isWide ? 70 : 80),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(20.0),
+            bottomRight: Radius.circular(20.0),
+          ),
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF1565C0),
+                  Color(0xFF64B5F6),
+                  Color(0xFFBBDEFB),
+                ],
               ),
             ),
-            Padding(
-              padding: EdgeInsets.only(
-                left: isWide ? MediaQuery.of(context).size.width * 0.2 : 16,
-                right: isWide ? MediaQuery.of(context).size.width * 0.2 : 16,
-                top: 12,
-                bottom: MediaQuery.of(context).viewInsets.bottom, // 👈 clave para evitar overflow
+            child: AppBar(
+              title: const Text(
+                'Reuniones',
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
               ),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(25),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.3),
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Buscar por título',
-                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _searchQuery = value;
-                    });
-                  },
-                ),
-              ),
+              centerTitle: true,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
             ),
-          ],
+          ),
         ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  if (isWide) {
-                    // Grid para pantallas anchas
-                    return SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: isWide ? MediaQuery.of(context).size.width * 0.2 : 16,
+                      right: isWide ? MediaQuery.of(context).size.width * 0.2 : 16,
+                      top: 12,
+                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.3),
+                            blurRadius: 6,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Buscar por título',
+                          prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
                         ),
-                        child: IntrinsicHeight(
-                          child: Column(
+                        onChanged: (value) {
+                          setState(() {
+                            _searchQuery = value;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  // El resto del body debe ocupar el espacio restante
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (isWide) {
+                          // Grid para pantallas anchas
+                          return SingleChildScrollView(
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 16),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 4),
+                                    child: Text(
+                                      'Presenciales',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blue[800],
+                                      ),
+                                    ),
+                                  ),
+                                  if (filterMeetings(presencialMeetings).isEmpty)
+                                    const Padding(
+                                      padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 8),
+                                      child: Text('No hay reuniones presenciales'),
+                                    )
+                                  else
+                                    GridView.count(
+                                      shrinkWrap: true,
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      crossAxisCount: 2,
+                                      childAspectRatio: 1.7,
+                                      children: filterMeetings(presencialMeetings).map(meetingCard).toList(),
+                                    ),
+                                  const SizedBox(height: 18),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 4),
+                                    child: Text(
+                                      'Virtuales',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.deepPurple,
+                                      ),
+                                    ),
+                                  ),
+                                  if (filterMeetings(virtualMeetings).isEmpty)
+                                    const Padding(
+                                      padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 8),
+                                      child: Text('No hay reuniones virtuales'),
+                                    )
+                                  else
+                                    GridView.count(
+                                      shrinkWrap: true,
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      crossAxisCount: 2,
+                                      childAspectRatio: 1.7,
+                                      children: filterMeetings(virtualMeetings).map(meetingCard).toList(),
+                                    ),
+                                  const SizedBox(height: 24),
+                                ],
+                              ),
+                            ),
+                          );
+                        } else {
+                          // Lista para móviles
+                          return ListView(
                             children: [
                               const SizedBox(height: 16),
                               Padding(
@@ -230,13 +288,7 @@ class _MeetingScreenState extends State<MeetingScreen> {
                                   child: Text('No hay reuniones presenciales'),
                                 )
                               else
-                                GridView.count(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  crossAxisCount: 2,
-                                  childAspectRatio: 1.7,
-                                  children: filterMeetings(presencialMeetings).map(meetingCard).toList(),
-                                ),
+                                ...filterMeetings(presencialMeetings).map(meetingCard),
                               const SizedBox(height: 18),
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 4),
@@ -255,66 +307,15 @@ class _MeetingScreenState extends State<MeetingScreen> {
                                   child: Text('No hay reuniones virtuales'),
                                 )
                               else
-                                GridView.count(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  crossAxisCount: 2,
-                                  childAspectRatio: 1.7,
-                                  children: filterMeetings(virtualMeetings).map(meetingCard).toList(),
-                                ),
+                                ...filterMeetings(virtualMeetings).map(meetingCard),
                               const SizedBox(height: 24),
                             ],
-                          ),
-                        ),
-                      ),
-                    );
-                  } else {
-                    // Lista para móviles
-                    return ListView(
-                      children: [
-                        const SizedBox(height: 16),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 4),
-                          child: Text(
-                            'Presenciales',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue[800],
-                            ),
-                          ),
-                        ),
-                        if (filterMeetings(presencialMeetings).isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 8),
-                            child: Text('No hay reuniones presenciales'),
-                          )
-                        else
-                          ...filterMeetings(presencialMeetings).map(meetingCard),
-                        const SizedBox(height: 18),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 4),
-                          child: Text(
-                            'Virtuales',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.deepPurple,
-                            ),
-                          ),
-                        ),
-                        if (filterMeetings(virtualMeetings).isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 8),
-                            child: Text('No hay reuniones virtuales'),
-                          )
-                        else
-                          ...filterMeetings(virtualMeetings).map(meetingCard),
-                        const SizedBox(height: 24),
-                      ],
-                    );
-                  }
-                },
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
       floatingActionButton: FloatingActionButton(
