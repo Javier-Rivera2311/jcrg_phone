@@ -39,11 +39,12 @@ class _TaskScreenState extends State<TaskScreen> {
         }
         grouped[category]!.add(Map<String, dynamic>.from(task));
       }
-
-      setState(() {
-        groupedTasks = grouped;
-        _allTasks = List<Map<String, dynamic>>.from(tasks);
-      });
+      if (mounted) {
+        setState(() {
+          groupedTasks = grouped;
+          _allTasks = List<Map<String, dynamic>>.from(tasks);
+        });
+      }
     }
   }
 
@@ -71,7 +72,7 @@ class _TaskScreenState extends State<TaskScreen> {
     final isWide = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
-      resizeToAvoidBottomInset: true, // <-- Agrega esto para evitar overflow
+      resizeToAvoidBottomInset: true,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(isWide ? 60 : 80),
         child: SafeArea(
@@ -146,185 +147,93 @@ class _TaskScreenState extends State<TaskScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : LayoutBuilder(
                     builder: (context, constraints) {
-                      if (isWide) {
-                        // Vista tipo grid para pantallas anchas
-                        List<Widget> tiles = [];
-                        filteredGroupedTasks.forEach((category, tasks) {
-                          tiles.add(
-                            Card(
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: 8, horizontal: 8),
-                              child: ExpansionTile(
-                                title: Text(
-                                  category,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blueAccent,
-                                  ),
-                                ),
-                                children: tasks.map((task) {
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12.0, vertical: 6),
-                                    child: GestureDetector(
-                                      onTap: () async {
-                                        final changed = await Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                TaskDetailScreen(task: task),
-                                          ),
-                                        );
-                                        if (changed == true) {
-                                          fetchTasks();
-                                        }
-                                      },
-                                      child: Card(
-                                        color: task['state'] == 'completada'
-                                            ? Colors.green[100]
-                                            : task['state'] == 'en progreso'
-                                                ? Colors.yellow[100]
-                                                : task['state'] == 'pendiente'
-                                                    ? Colors.red[100]
-                                                    : Colors.white,
-                                        elevation: 3,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(14)),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(14.0),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  const Icon(Icons.assignment,
-                                                      color: Colors.blue),
-                                                  const SizedBox(width: 10),
-                                                  Expanded(
-                                                    child: Text(task['title'],
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 16,
-                                                        )),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Text("Estado: ${task['state']}"),
-                                              Text(
-                                                  "Fecha: ${task['date_finish'].toString().split('T')[0]}"),
-                                              Text(
-                                                  "Trabajadores: ${task['workers']}"),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
+                      // Cambia la lógica: en desktop/tablet también usa ListView como en móvil
+                      return ListView(
+                        padding: const EdgeInsets.only(
+                          left: 12,
+                          right: 12,
+                          top: 12,
+                          bottom: 80,
+                        ),
+                        children: filteredGroupedTasks.entries.map((entry) {
+                          final category = entry.key;
+                          final tasks = entry.value;
+
+                          return ExpansionTile(
+                            title: Text(
+                              category,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blueAccent,
                               ),
                             ),
-                          );
-                        });
-                        return GridView.count(
-                          crossAxisCount: 2,
-                          childAspectRatio: 1.5,
-                          children: tiles,
-                        );
-                      } else {
-                        // Vista lista para móviles
-                        return ListView(
-                          padding: const EdgeInsets.only(
-                            left: 12,
-                            right: 12,
-                            top: 12,
-                            bottom:
-                                80, // <-- Agrega padding inferior para evitar que el botón flote sobre el contenido
-                          ),
-                          children: filteredGroupedTasks.entries.map((entry) {
-                            final category = entry.key;
-                            final tasks = entry.value;
-
-                            return ExpansionTile(
-                              title: Text(
-                                category,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blueAccent,
-                                ),
-                              ),
-                              children: tasks.map((task) {
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12.0, vertical: 6),
-                                  child: GestureDetector(
-                                    onTap: () async {
-                                      final changed = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              TaskDetailScreen(task: task),
-                                        ),
-                                      );
-                                      if (changed == true) {
-                                        fetchTasks();
-                                      }
-                                    },
-                                    child: Card(
-                                      color: task['state'] == 'completada'
-                                          ? Colors.green[100]
-                                          : task['state'] == 'en progreso'
-                                              ? Colors.yellow[100]
-                                              : task['state'] == 'pendiente'
-                                                  ? Colors.red[100]
-                                                  : Colors.white,
-                                      elevation: 3,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(14)),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(14.0),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                const Icon(Icons.assignment,
-                                                    color: Colors.blue),
-                                                const SizedBox(width: 10),
-                                                Expanded(
-                                                  child: Text(task['title'],
-                                                      style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 16,
-                                                      )),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Text("Estado: ${task['state']}"),
-                                            Text(
-                                                "Fecha: ${task['date_finish'].toString().split('T')[0]}"),
-                                            Text(
-                                                "Trabajadores: ${task['workers']}"),
-                                          ],
-                                        ),
+                            children: tasks.map((task) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12.0, vertical: 6),
+                                child: GestureDetector(
+                                  onTap: () async {
+                                    final changed = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            TaskDetailScreen(task: task),
+                                      ),
+                                    );
+                                    if (changed == true) {
+                                      fetchTasks();
+                                    }
+                                  },
+                                  child: Card(
+                                    color: task['state'] == 'completada'
+                                        ? Colors.green[100]
+                                        : task['state'] == 'en progreso'
+                                            ? Colors.yellow[100]
+                                            : task['state'] == 'pendiente'
+                                                ? Colors.red[100]
+                                                : Colors.white,
+                                    elevation: 3,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(14)),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(14.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              const Icon(Icons.assignment,
+                                                  color: Colors.blue),
+                                              const SizedBox(width: 10),
+                                              Expanded(
+                                                child: Text(task['title'],
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16,
+                                                    )),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text("Estado: ${task['state']}"),
+                                          Text(
+                                              "Fecha: ${task['date_finish'].toString().split('T')[0]}"),
+                                          Text(
+                                              "Trabajadores: ${task['workers']}"),
+                                        ],
                                       ),
                                     ),
                                   ),
-                                );
-                              }).toList(),
-                            );
-                          }).toList(),
-                        );
-                      }
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        }).toList(),
+                      );
                     },
                   ),
           ),
