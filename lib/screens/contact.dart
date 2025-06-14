@@ -33,11 +33,18 @@ class _ContactScreenState extends State<ContactScreen> {
           .get(Uri.parse('https://backend-jcrg.onrender.com/user/Contacts'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        setState(() {
-          contacts = data['usuarios'];
-          filteredContacts =
-              contacts; // Inicialmente, muestra todos los contactos
-        });
+        List<dynamic> usuarios = data['usuarios'];
+        usuarios.sort((a, b) => (a['Name'] ?? '')
+            .toString()
+            .toLowerCase()
+            .compareTo((b['Name'] ?? '').toString().toLowerCase()));
+        if (mounted) {
+          setState(() {
+            contacts = data['usuarios'];
+            filteredContacts =
+                contacts; // Inicialmente, muestra todos los contactos
+          });
+        }
       } else {
         throw Exception('Error al cargar los datos');
       }

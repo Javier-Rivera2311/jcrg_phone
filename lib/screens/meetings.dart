@@ -201,117 +201,50 @@ class _MeetingScreenState extends State<MeetingScreen> {
                   Expanded(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        if (isWide) {
-                          // Grid para pantallas anchas
-                          return SingleChildScrollView(
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                minHeight: constraints.maxHeight,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 16),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 4),
-                                    child: Text(
-                                      'Presenciales',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.blue[800],
-                                      ),
-                                    ),
-                                  ),
-                                  if (filterMeetings(presencialMeetings).isEmpty)
-                                    const Padding(
-                                      padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 8),
-                                      child: Text('No hay reuniones presenciales'),
-                                    )
-                                  else
-                                    GridView.count(
-                                      shrinkWrap: true,
-                                      physics: const NeverScrollableScrollPhysics(),
-                                      crossAxisCount: 2,
-                                      childAspectRatio: 1.7,
-                                      children: filterMeetings(presencialMeetings).map(meetingCard).toList(),
-                                    ),
-                                  const SizedBox(height: 18),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 4),
-                                    child: Text(
-                                      'Virtuales',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.deepPurple,
-                                      ),
-                                    ),
-                                  ),
-                                  if (filterMeetings(virtualMeetings).isEmpty)
-                                    const Padding(
-                                      padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 8),
-                                      child: Text('No hay reuniones virtuales'),
-                                    )
-                                  else
-                                    GridView.count(
-                                      shrinkWrap: true,
-                                      physics: const NeverScrollableScrollPhysics(),
-                                      crossAxisCount: 2,
-                                      childAspectRatio: 1.7,
-                                      children: filterMeetings(virtualMeetings).map(meetingCard).toList(),
-                                    ),
-                                  const SizedBox(height: 24),
-                                ],
+                        // Usa ListView también en desktop para que las cards ocupen solo el espacio necesario
+                        return ListView(
+                          children: [
+                            const SizedBox(height: 16),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 4),
+                              child: Text(
+                                'Presenciales',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue[800],
+                                ),
                               ),
                             ),
-                          );
-                        } else {
-                          // Lista para móviles
-                          return ListView(
-                            children: [
-                              const SizedBox(height: 16),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 4),
-                                child: Text(
-                                  'Presenciales',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue[800],
-                                  ),
+                            if (filterMeetings(presencialMeetings).isEmpty)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 8),
+                                child: Text('No hay reuniones presenciales'),
+                              )
+                            else
+                              ...filterMeetings(presencialMeetings).map(meetingCard),
+                            const SizedBox(height: 18),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 4),
+                              child: Text(
+                                'Virtuales',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.deepPurple,
                                 ),
                               ),
-                              if (filterMeetings(presencialMeetings).isEmpty)
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 8),
-                                  child: Text('No hay reuniones presenciales'),
-                                )
-                              else
-                                ...filterMeetings(presencialMeetings).map(meetingCard),
-                              const SizedBox(height: 18),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 4),
-                                child: Text(
-                                  'Virtuales',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.deepPurple,
-                                  ),
-                                ),
-                              ),
-                              if (filterMeetings(virtualMeetings).isEmpty)
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 8),
-                                  child: Text('No hay reuniones virtuales'),
-                                )
-                              else
-                                ...filterMeetings(virtualMeetings).map(meetingCard),
-                              const SizedBox(height: 24),
-                            ],
-                          );
-                        }
+                            ),
+                            if (filterMeetings(virtualMeetings).isEmpty)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 8),
+                                child: Text('No hay reuniones virtuales'),
+                              )
+                            else
+                              ...filterMeetings(virtualMeetings).map(meetingCard),
+                            const SizedBox(height: 24),
+                          ],
+                        );
                       },
                     ),
                   ),
