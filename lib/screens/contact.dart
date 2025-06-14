@@ -17,12 +17,19 @@ class _ContactScreenState extends State<ContactScreen> {
   List<dynamic> contacts = [];
   List<dynamic> filteredContacts = [];
   TextEditingController searchController = TextEditingController();
+  String? selectedLetter; // <-- Agrega esta variable para el filtro alfabético
 
   @override
   void initState() {
     super.initState();
     fetchContacts();
     searchController.addListener(() {
+      // Si se escribe en la búsqueda, limpia el filtro por letra
+      if (selectedLetter != null) {
+        setState(() {
+          selectedLetter = null;
+        });
+      }
       filterContacts();
     });
   }
@@ -56,21 +63,29 @@ class _ContactScreenState extends State<ContactScreen> {
   void filterContacts() {
     final query = searchController.text.toLowerCase();
     setState(() {
-      filteredContacts = contacts.where((contact) {
-        final name = contact['Name']?.toLowerCase() ?? '';
-        final email = contact['email']?.toLowerCase() ?? '';
-        final commune = contact['Commune']?.toLowerCase() ?? '';
-        final phone = contact['Phone']?.toLowerCase() ?? '';
-        final job = contact['job']?.toLowerCase() ?? '';
-        final project = contact['project']?.toLowerCase() ?? '';
+      if (selectedLetter != null && query.isEmpty) {
+        filteredContacts = contacts.where((contact) {
+          final name = contact['Name'] ?? '';
+          return name.isNotEmpty &&
+              name[0].toUpperCase() == selectedLetter;
+        }).toList();
+      } else {
+        filteredContacts = contacts.where((contact) {
+          final name = contact['Name']?.toLowerCase() ?? '';
+          final email = contact['email']?.toLowerCase() ?? '';
+          final commune = contact['Commune']?.toLowerCase() ?? '';
+          final phone = contact['Phone']?.toLowerCase() ?? '';
+          final job = contact['job']?.toLowerCase() ?? '';
+          final project = contact['project']?.toLowerCase() ?? '';
 
-        return name.contains(query) ||
-            email.contains(query) ||
-            commune.contains(query) ||
-            phone.contains(query) ||
-            job.contains(query) ||
-            project.contains(query);
-      }).toList();
+          return name.contains(query) ||
+              email.contains(query) ||
+              commune.contains(query) ||
+              phone.contains(query) ||
+              job.contains(query) ||
+              project.contains(query);
+        }).toList();
+      }
     });
   }
 
@@ -138,6 +153,57 @@ class _ContactScreenState extends State<ContactScreen> {
                   contentPadding:
                       const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
                 ),
+              ),
+            ),
+          ),
+          // Fila de filtros alfabéticos centrada y con botón "Todos"
+          SizedBox(
+            height: 48,
+            child: Center(
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: 27, // 1 para "Todos" + 26 letras
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    // Botón "Todos"
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: ChoiceChip(
+                        label: const Text('Todos'),
+                        selected: selectedLetter == null,
+                        onSelected: (selected) {
+                          setState(() {
+                            selectedLetter = null;
+                            searchController.clear();
+                            filterContacts();
+                          });
+                        },
+                      ),
+                    );
+                  } else {
+                    String letter = String.fromCharCode(64 + index); // A-Z
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: ChoiceChip(
+                        label: Text(letter),
+                        selected: selectedLetter == letter,
+                        onSelected: (selected) {
+                          setState(() {
+                            if (selected) {
+                              selectedLetter = letter;
+                              searchController.clear();
+                            } else {
+                              selectedLetter = null;
+                            }
+                            filterContacts();
+                          });
+                        },
+                      ),
+                    );
+                  }
+                },
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
               ),
             ),
           ),
