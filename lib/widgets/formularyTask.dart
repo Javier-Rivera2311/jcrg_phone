@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:jcrg_phone/services/notifications_services.dart';
 
 class FormularyTask extends StatefulWidget {
   const FormularyTask({super.key});
@@ -24,6 +25,7 @@ class _FormularyTaskState extends State<FormularyTask> {
   @override
   void initState() {
     super.initState();
+    iniNotifications(); // Inicializa notificaciones
     fetchWorkers();
     fetchCategories();
   }
@@ -87,6 +89,11 @@ class _FormularyTaskState extends State<FormularyTask> {
     if (response.statusCode == 201) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Tarea creada correctamente')),
+      );
+      // Notificación local
+      await showSimpleNotification(
+        'Nueva tarea',
+        'La tarea "${_titleController.text}" fue creada correctamente',
       );
       _formKey.currentState?.reset();
       _titleController.clear();

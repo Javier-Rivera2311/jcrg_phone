@@ -1,0 +1,10 @@
+<!-- ...existing Info.plist content... -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+	<key>NSUserNotificationAlertStyle</key>
+	<string>alert</string>
+	<key>NSLocalNotificationUsageDescription</key>
+	<string>Esta app necesita mostrar notificaciones para avisos importantes.</string>
+<!-- ...existing Info.plist content... -->
