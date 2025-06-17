@@ -10,10 +10,12 @@ import 'package:jcrg_phone/screens/notifications.dart';
 import 'package:jcrg_phone/screens/messages.dart';
 import 'package:jcrg_phone/screens/home.dart';
 import 'package:jcrg_phone/screens/report.dart';
+import 'package:jcrg_phone/services/notifications_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await iniNotifications();
   runApp(const MyApp());
 }
 
