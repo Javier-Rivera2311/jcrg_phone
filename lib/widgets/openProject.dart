@@ -43,28 +43,30 @@ class OpenProject extends StatelessWidget {
       Uri? uri;
 
       if (Platform.isWindows) {
-        // Si es ruta UNC de red, usa file://
+        // Si es ruta UNC de red, usa file:///\\servidor\carpeta
         if (windowsPath.startsWith(r'\\')) {
-          // file://servidor/carpeta
-          final uncPath = windowsPath.replaceFirst(r'\\', '');
-          uri = Uri.parse('file:///$uncPath'.replaceAll(r'\', '/'));
+          // file://servidor/carpeta (sin doble slash extra)
+          final uncPath = windowsPath.replaceFirst(RegExp(r'^\\\\'), '');
+          // Importante: solo un slash después de file:// y usar / como separador
+          uri = Uri.parse('file:///${uncPath.replaceAll(r"\", "/")}');
         } else {
           // Ruta local
           uri = Uri.file(windowsPath);
         }
       } else if (Platform.isMacOS) {
-        // Siempre usa smb:// para rutas de red
         uri = Uri.parse(convertedPath);
       }
 
+      // Validación extra: mostrar la ruta final en el error para depuración
       if (uri != null && await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
         _showErrorSnackBar(context,
-            'No se pudo abrir la carpeta.\nVerifica que la ruta sea accesible desde este equipo.\nRuta: $convertedPath');
+            'No se pudo abrir la carpeta.\nVerifica que la ruta sea accesible desde este equipo.\nRuta: ${uri?.toString() ?? convertedPath}');
       }
     } catch (e) {
-      _showErrorSnackBar(context, 'Error al abrir la carpeta: $e');
+      _showErrorSnackBar(
+          context, 'Error al abrir la carpeta: $e\nRuta: $windowsPath');
     }
   }
 
