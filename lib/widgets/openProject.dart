@@ -39,25 +39,32 @@ class OpenProject extends StatelessWidget {
   Future<void> openNetworkFolder(BuildContext context) async {
     final convertedPath = convertNetworkPath(windowsPath);
 
-    if (Platform.isWindows || Platform.isMacOS) {
-      try {
-        // Para rutas con espacios, Uri.file puede ser más seguro, pero aquí usamos parse para smb://
-        final uri = Platform.isWindows
-            ? Uri.file(convertedPath)
-            : Uri.parse(convertedPath);
+    try {
+      Uri? uri;
 
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri);
+      if (Platform.isWindows) {
+        // Si es ruta UNC de red, usa file://
+        if (windowsPath.startsWith(r'\\')) {
+          // file://servidor/carpeta
+          final uncPath = windowsPath.replaceFirst(r'\\', '');
+          uri = Uri.parse('file:///$uncPath'.replaceAll(r'\', '/'));
         } else {
-          _showErrorSnackBar(context,
-              'No se pudo abrir la carpeta.\nVerifica que la ruta sea accesible desde este equipo.');
+          // Ruta local
+          uri = Uri.file(windowsPath);
         }
-      } catch (e) {
-        _showErrorSnackBar(context, 'Error al abrir la carpeta: $e');
+      } else if (Platform.isMacOS) {
+        // Siempre usa smb:// para rutas de red
+        uri = Uri.parse(convertedPath);
       }
-    } else {
-      // En móviles, mostrar la ruta para copiar
-      _showMobileDialog(context, convertedPath);
+
+      if (uri != null && await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        _showErrorSnackBar(context,
+            'No se pudo abrir la carpeta.\nVerifica que la ruta sea accesible desde este equipo.\nRuta: $convertedPath');
+      }
+    } catch (e) {
+      _showErrorSnackBar(context, 'Error al abrir la carpeta: $e');
     }
   }
 
