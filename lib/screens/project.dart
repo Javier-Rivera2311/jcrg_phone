@@ -4,6 +4,7 @@ import 'dart:convert';
 // Importa tu formulario y pantalla de detalle de proyecto
 import '../widgets/formularyProject.dart';
 import '../widgets/project_detail_screen.dart';
+import '../widgets/openProject.dart'; // ← NUEVA IMPORTACIÓN
 
 class ProjectScreen extends StatefulWidget {
   const ProjectScreen({super.key});
@@ -25,21 +26,21 @@ class _ProjectScreenState extends State<ProjectScreen> {
 
   Future<void> fetchProjects() async {
     final response = await http.get(
-      Uri.parse('https://backend-jcrg.onrender.com/user/getProjects'),
+      Uri.parse('https://backend-jcrg.onrender.com/user/Project'),
     );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      final List projects = data['projects'];
+      final List projects = data['proyectos'];
 
       Map<String, List<Map<String, dynamic>>> grouped = {};
 
       for (var project in projects) {
-        final String state = project['state'] ?? 'Sin estado';
-        if (!grouped.containsKey(state)) {
-          grouped[state] = [];
+        final String city = project['city'] ?? 'Sin ciudad';
+        if (!grouped.containsKey(city)) {
+          grouped[city] = [];
         }
-        grouped[state]!.add(Map<String, dynamic>.from(project));
+        grouped[city]!.add(Map<String, dynamic>.from(project));
       }
       if (mounted) {
         setState(() {
@@ -56,10 +57,10 @@ class _ProjectScreenState extends State<ProjectScreen> {
     Map<String, List<Map<String, dynamic>>> filtered = {};
     for (var entry in groupedProjects.entries) {
       final filteredProjects = entry.value.where((project) {
-        final name = (project['name'] ?? '').toString().toLowerCase();
-        final manager = (project['manager'] ?? '').toString().toLowerCase();
+        final name = (project['Name_project'] ?? '').toString().toLowerCase();
+        final inCharge = (project['in_charge'] ?? '').toString().toLowerCase();
         return name.contains(_searchQuery.toLowerCase()) ||
-            manager.contains(_searchQuery.toLowerCase());
+            inCharge.contains(_searchQuery.toLowerCase());
       }).toList();
       if (filteredProjects.isNotEmpty) {
         filtered[entry.key] = filteredProjects;
@@ -89,9 +90,9 @@ class _ProjectScreenState extends State<ProjectScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0xFF2196F3),
-                    Color(0xFF64B5F6),
-                    Color(0xFFBBDEFB),
+                    Color.fromARGB(255, 116, 169, 255),
+                    Color(0xFF82B1FF),
+                    Color.fromARGB(255, 193, 215, 251),
                   ],
                 ),
               ),
@@ -155,12 +156,12 @@ class _ProjectScreenState extends State<ProjectScreen> {
                       bottom: 80,
                     ),
                     children: filteredGroupedProjects.entries.map((entry) {
-                      final state = entry.key;
+                      final city = entry.key;
                       final projects = entry.value;
 
                       return ExpansionTile(
                         title: Text(
-                          state,
+                          city,
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -185,13 +186,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                 }
                               },
                               child: Card(
-                                color: project['state'] == 'completado'
-                                    ? Colors.green[100]
-                                    : project['state'] == 'en progreso'
-                                        ? Colors.yellow[100]
-                                        : project['state'] == 'pendiente'
-                                            ? Colors.red[100]
-                                            : Colors.white,
+                                color: Colors.white,
                                 elevation: 3,
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(14)),
@@ -207,20 +202,35 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                               color: Colors.blue),
                                           const SizedBox(width: 10),
                                           Expanded(
-                                            child: Text(project['name'],
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                )),
+                                            child: Text(
+                                              project['Name_project'] ?? '',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                            ),
                                           ),
+                                          // ← CORREGIDO: Usar OpenProject en lugar de NetworkFolderOpener
+                                          if (project['path'] != null)
+                                            OpenProject(
+                                              windowsPath: project['path'],
+                                              tooltip:
+                                                  'Abrir carpeta del proyecto',
+                                            ),
                                         ],
                                       ),
                                       const SizedBox(height: 8),
-                                      Text("Estado: ${project['state']}"),
+                                      Text("Ciudad: ${project['city'] ?? ''}"),
                                       Text(
-                                          "Fecha fin: ${project['date_finish']?.toString()?.split('T')[0] ?? ''}"),
+                                          "Fecha fin: ${(project['end_date']?.toString()?.split('T')[0]) ?? ''}"),
                                       Text(
-                                          "Encargado: ${project['manager'] ?? ''}"),
+                                          "Encargado: ${project['in_charge'] ?? ''}"),
+                                      if (project['observations'] != null)
+                                        Text(
+                                            "Observaciones: ${project['observations']}"),
+                                      if (project['workers'] != null)
+                                        Text(
+                                            "Trabajadores: ${project['workers']}"),
                                     ],
                                   ),
                                 ),
