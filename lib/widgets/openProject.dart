@@ -40,40 +40,25 @@ class OpenProject extends StatelessWidget {
     final convertedPath = convertNetworkPath(windowsPath);
 
     try {
-      Uri? uri;
-
       if (Platform.isWindows) {
-        // Si es ruta UNC de red, usa file://servidor/carpeta (sin slash extra)
+        // Si es ruta UNC de red, abrir con explorer.exe directamente
         if (windowsPath.startsWith(r'\\')) {
-          // Quita los backslash iniciales y reemplaza \ por /
-          final uncPath = windowsPath.replaceFirst(RegExp(r'^\\\\'), '');
-          // file://servidor/carpeta
-          uri = Uri.parse('file:///${uncPath.replaceAll(r"\", "/")}');
+          // explorer.exe requiere doble backslash y sin comillas
+          final uncPath = windowsPath;
+          // Intenta abrir con explorer.exe
+          await Process.run('explorer', [uncPath]);
         } else {
           // Ruta local
-          uri = Uri.file(windowsPath);
-        }
-
-        // Solución alternativa: usar 'explorer' para abrir la carpeta si launchUrl falla
-        if (uri != null && await canLaunchUrl(uri)) {
-          await launchUrl(uri);
-        } else {
-          // Intenta abrir con explorer.exe si launchUrl falla
-          try {
-            final pathToOpen = windowsPath.replaceAll('/', r'\');
-            await Process.run('explorer', [pathToOpen]);
-          } catch (e) {
-            _showErrorSnackBar(context,
-                'No se pudo abrir la carpeta con explorer.exe.\nError: $e\nRuta: $windowsPath');
-          }
+          final localPath = windowsPath.replaceAll('/', r'\');
+          await Process.run('explorer', [localPath]);
         }
       } else if (Platform.isMacOS) {
-        uri = Uri.parse(convertedPath);
-        if (uri != null && await canLaunchUrl(uri)) {
+        Uri uri = Uri.parse(convertedPath);
+        if (await canLaunchUrl(uri)) {
           await launchUrl(uri);
         } else {
           _showErrorSnackBar(context,
-              'No se pudo abrir la carpeta.\nVerifica que la ruta sea accesible desde este equipo.\nRuta: ${uri?.toString() ?? convertedPath}');
+              'No se pudo abrir la carpeta.\nVerifica que la ruta sea accesible desde este equipo.\nRuta: $convertedPath');
         }
       } else {
         // Móviles: solo mostrar la ruta
