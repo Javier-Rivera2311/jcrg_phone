@@ -43,26 +43,41 @@ class OpenProject extends StatelessWidget {
       Uri? uri;
 
       if (Platform.isWindows) {
-        // Si es ruta UNC de red, usa file:///\\servidor\carpeta
+        // Si es ruta UNC de red, usa file://servidor/carpeta (sin slash extra)
         if (windowsPath.startsWith(r'\\')) {
-          // file://servidor/carpeta (sin doble slash extra)
+          // Quita los backslash iniciales y reemplaza \ por /
           final uncPath = windowsPath.replaceFirst(RegExp(r'^\\\\'), '');
-          // Importante: solo un slash después de file:// y usar / como separador
+          // file://servidor/carpeta
           uri = Uri.parse('file:///${uncPath.replaceAll(r"\", "/")}');
         } else {
           // Ruta local
           uri = Uri.file(windowsPath);
         }
+
+        // Solución alternativa: usar 'explorer' para abrir la carpeta si launchUrl falla
+        if (uri != null && await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        } else {
+          // Intenta abrir con explorer.exe si launchUrl falla
+          try {
+            final pathToOpen = windowsPath.replaceAll('/', r'\');
+            await Process.run('explorer', [pathToOpen]);
+          } catch (e) {
+            _showErrorSnackBar(context,
+                'No se pudo abrir la carpeta con explorer.exe.\nError: $e\nRuta: $windowsPath');
+          }
+        }
       } else if (Platform.isMacOS) {
         uri = Uri.parse(convertedPath);
-      }
-
-      // Validación extra: mostrar la ruta final en el error para depuración
-      if (uri != null && await canLaunchUrl(uri)) {
-        await launchUrl(uri);
+        if (uri != null && await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        } else {
+          _showErrorSnackBar(context,
+              'No se pudo abrir la carpeta.\nVerifica que la ruta sea accesible desde este equipo.\nRuta: ${uri?.toString() ?? convertedPath}');
+        }
       } else {
-        _showErrorSnackBar(context,
-            'No se pudo abrir la carpeta.\nVerifica que la ruta sea accesible desde este equipo.\nRuta: ${uri?.toString() ?? convertedPath}');
+        // Móviles: solo mostrar la ruta
+        _showMobileDialog(context, convertedPath);
       }
     } catch (e) {
       _showErrorSnackBar(
