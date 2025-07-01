@@ -3,7 +3,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class FormularyProject extends StatefulWidget {
-  const FormularyProject({super.key});
+  final bool isEdit;
+  final Map<String, dynamic>? initialData;
+
+  const FormularyProject({super.key, this.isEdit = false, this.initialData});
 
   @override
   State<FormularyProject> createState() => _FormularyProjectState();
@@ -12,97 +15,158 @@ class FormularyProject extends StatefulWidget {
 class _FormularyProjectState extends State<FormularyProject> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameProjectController = TextEditingController();
-  final TextEditingController _urlController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
   final TextEditingController _observationsController = TextEditingController();
-  final TextEditingController _workersController = TextEditingController();
   final TextEditingController _localPathController = TextEditingController();
 
   List<String> _workersList = [];
   String? _selectedManager;
+  List<String> _selectedWorkers = [];
 
   @override
   void initState() {
     super.initState();
     fetchWorkers();
+    if (widget.isEdit && widget.initialData != null) {
+      _populateInitialData();
+    }
+  }
+
+  void _populateInitialData() {
+    final data = widget.initialData!;
+    _nameProjectController.text = data['Name_project'] ?? '';
+    _cityController.text = data['city'] ?? '';
+    _endDateController.text = data['end_date'] ?? '';
+    _observationsController.text = data['observations'] ?? '';
+    _localPathController.text = data['local_path'] ?? '';
+    _selectedManager = data['in_charge'];
+
+    // Convertir string de trabajadores a lista
+    if (data['workers'] != null && data['workers'].toString().isNotEmpty) {
+      _selectedWorkers = data['workers'].toString().split(', ');
+    }
   }
 
   Future<void> fetchWorkers() async {
-    final response = await http
-        .get(Uri.parse('https://backend-jcrg.onrender.com/user/listWorker'));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final meetings = data['meetings'];
-      setState(() {
-        _workersList = meetings != null
-            ? List<String>.from(meetings.map((w) => w['Name']))
-            : [];
-      });
+    try {
+      final response = await http
+          .get(Uri.parse('https://backend-jcrg.onrender.com/user/listWorker'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final meetings = data['meetings'];
+        setState(() {
+          _workersList = meetings != null
+              ? List<String>.from(meetings.map((w) => w['Name']))
+              : [];
+        });
+      }
+    } catch (e) {
+      print('Error fetching workers: $e');
     }
   }
 
   @override
   void dispose() {
     _nameProjectController.dispose();
-    _urlController.dispose();
     _cityController.dispose();
     _endDateController.dispose();
     _observationsController.dispose();
-    _workersController.dispose();
     _localPathController.dispose();
     super.dispose();
   }
 
   Future<void> submitForm() async {
-    final url = Uri.parse('https://backend-jcrg.onrender.com/user/addProject');
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedWorkers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Seleccione al menos un trabajador')),
+      );
+      return;
+    }
+
+    String url;
+    http.Response response;
+
+    try {
+      final body = {
         "Name_project": _nameProjectController.text,
-        "url": _urlController.text,
         "city": _cityController.text,
         "end_date": _endDateController.text,
         "observations": _observationsController.text,
-        "workers": _workersController.text,
+        "workers": _selectedWorkers.join(', '),
         "local_path": _localPathController.text,
-        "manager": _selectedManager,
-      }),
-    );
+        "in_charge": _selectedManager,
+      };
 
-    if (response.statusCode == 201) {
+      if (widget.isEdit && widget.initialData != null) {
+        // Modo edición: usar PUT
+        url =
+            'https://backend-jcrg.onrender.com/user/updateProject/${widget.initialData!['id_server']}';
+        response = await http.put(
+          Uri.parse(url),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode(body),
+        );
+      } else {
+        // Modo creación: usar POST
+        url = 'https://backend-jcrg.onrender.com/user/addProject';
+        response = await http.post(
+          Uri.parse(url),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode(body),
+        );
+      }
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(widget.isEdit
+                  ? 'Proyecto actualizado correctamente'
+                  : 'Proyecto creado correctamente')),
+        );
+        _clearForm();
+        Navigator.pop(context, true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(widget.isEdit
+                  ? 'Error al actualizar el proyecto'
+                  : 'Error al crear el proyecto')),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Proyecto creado correctamente')),
-      );
-      _formKey.currentState?.reset();
-      _nameProjectController.clear();
-      _urlController.clear();
-      _cityController.clear();
-      _endDateController.clear();
-      _observationsController.clear();
-      _workersController.clear();
-      _localPathController.clear();
-      setState(() {
-        _selectedManager = null;
-      });
-      Navigator.pop(context, true); // Para recargar la lista al volver
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al crear el proyecto')),
+        SnackBar(content: Text('Error de conexión: $e')),
       );
     }
+  }
+
+  void _clearForm() {
+    _formKey.currentState?.reset();
+    _nameProjectController.clear();
+    _cityController.clear();
+    _endDateController.clear();
+    _observationsController.clear();
+    _localPathController.clear();
+    setState(() {
+      _selectedManager = null;
+      _selectedWorkers = [];
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Formulario de Proyecto')),
+      appBar: AppBar(
+          title: Text(
+              widget.isEdit ? 'Editar Proyecto' : 'Formulario de Proyecto')),
       body: Center(
         child: Card(
           elevation: 8,
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Form(
@@ -127,18 +191,6 @@ class _FormularyProjectState extends State<FormularyProject> {
                     ),
                     validator: (value) => value == null || value.isEmpty
                         ? 'Ingrese el nombre'
-                        : null,
-                  ),
-                  const SizedBox(height: 14),
-                  TextFormField(
-                    controller: _urlController,
-                    decoration: const InputDecoration(
-                      labelText: 'URL',
-                      prefixIcon: Icon(Icons.link),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) => value == null || value.isEmpty
-                        ? 'Ingrese la URL'
                         : null,
                   ),
                   const SizedBox(height: 14),
@@ -189,18 +241,70 @@ class _FormularyProjectState extends State<FormularyProject> {
                     maxLines: 2,
                   ),
                   const SizedBox(height: 14),
-                  TextFormField(
-                    controller: _workersController,
-                    decoration: const InputDecoration(
-                      labelText: 'Trabajadores',
-                      prefixIcon: Icon(Icons.people),
-                      border: OutlineInputBorder(),
-                      hintText: 'Separados por coma',
+                  // Widget para selección múltiple de trabajadores
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                    validator: (value) => value == null || value.isEmpty
-                        ? 'Ingrese al menos un trabajador'
-                        : null,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.all(12.0),
+                          child: Row(
+                            children: [
+                              Icon(Icons.people, color: Colors.grey),
+                              SizedBox(width: 12),
+                              Text('Trabajadores',
+                                  style: TextStyle(fontSize: 16)),
+                            ],
+                          ),
+                        ),
+                        const Divider(height: 1),
+                        Container(
+                          constraints: const BoxConstraints(maxHeight: 150),
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: _workersList.length,
+                            itemBuilder: (context, index) {
+                              final worker = _workersList[index];
+                              return CheckboxListTile(
+                                title: Text(worker),
+                                value: _selectedWorkers.contains(worker),
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    if (value == true) {
+                                      _selectedWorkers.add(worker);
+                                    } else {
+                                      _selectedWorkers.remove(worker);
+                                    }
+                                  });
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  if (_selectedWorkers.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6.0,
+                      children: _selectedWorkers.map((worker) {
+                        return Chip(
+                          label: Text(worker),
+                          deleteIcon: const Icon(Icons.close, size: 18),
+                          onDeleted: () {
+                            setState(() {
+                              _selectedWorkers.remove(worker);
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ],
                   const SizedBox(height: 14),
                   TextFormField(
                     controller: _localPathController,
@@ -231,15 +335,11 @@ class _FormularyProjectState extends State<FormularyProject> {
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        submitForm();
-                      }
-                    },
+                    onPressed: submitForm,
                     icon: const Icon(Icons.save, color: Colors.white),
-                    label: const Text(
-                      'Guardar',
-                      style: TextStyle(
+                    label: Text(
+                      widget.isEdit ? 'Actualizar' : 'Guardar',
+                      style: const TextStyle(
                           color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                     style: ElevatedButton.styleFrom(

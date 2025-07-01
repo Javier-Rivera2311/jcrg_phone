@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import '../widgets/openProject.dart'; // Asegúrate de tener este widget
+import '../widgets/openProject.dart';
+import '../widgets/formularyProject.dart'; // Agregar esta importación
 
 class ProjectDetailScreen extends StatelessWidget {
   final Map<String, dynamic> project;
@@ -124,7 +125,19 @@ class ProjectDetailScreen extends StatelessWidget {
                               Center(
                                 child: ElevatedButton.icon(
                                   onPressed: () async {
-                                    // Aquí podrías implementar lógica para editar el proyecto si lo deseas
+                                    // Navegar al formulario de edición
+                                    final changed = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => FormularyProject(
+                                          initialData: project,
+                                          isEdit: true,
+                                        ),
+                                      ),
+                                    );
+                                    if (changed == true) {
+                                      refreshParent();
+                                    }
                                   },
                                   icon: const Icon(Icons.edit),
                                   label: const Text("Editar proyecto"),
@@ -136,7 +149,7 @@ class ProjectDetailScreen extends StatelessWidget {
                                   onPressed: () async {
                                     await http.delete(
                                       Uri.parse(
-                                          'https://backend-jcrg.onrender.com/user/Project/${project['id_server']}'),
+                                          'https://backend-jcrg.onrender.com/user/deleteProject/${project['id_server']}'),
                                     );
                                     refreshParent();
                                   },
