@@ -52,8 +52,8 @@ class _HomePageState extends State<HomePage> {
     Color(0xFF2962FF), // Azul eléctrico, personal
     Color(0xFF1976D2), // Azul vibrante, notificaciones
     Color(0xFF0D47A1), // Azul profundo
+    Color.fromARGB(255, 116, 169, 255), // Azul pastel
     Color.fromARGB(255, 255, 33, 33), // reportar problema
-    Color(0xFF82B1FF), // Azul pastel
   ];
 
   @override
@@ -68,7 +68,8 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: colors[_currentIndex],
         actions: [
           IconButton(
-            icon: const Icon(Icons.message, color: Color.fromARGB(255, 0, 0, 0)),
+            icon:
+                const Icon(Icons.message, color: Color.fromARGB(255, 0, 0, 0)),
             onPressed: () {
               // Cambia al índice de la pantalla de mensajes
               setState(() {
@@ -184,7 +185,8 @@ class _HomePageState extends State<HomePage> {
                     final prefs = await SharedPreferences.getInstance();
                     await prefs.clear();
                     if (!mounted) return;
-                    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                    Navigator.of(context)
+                        .pushNamedAndRemoveUntil('/login', (route) => false);
                   },
                 ),
               ),
@@ -199,7 +201,8 @@ class _HomePageState extends State<HomePage> {
         padding: const EdgeInsets.symmetric(horizontal: 10),
         margin: const EdgeInsets.only(bottom: 10),
         child: GNav(
-          color: colors[_currentIndex % colors.length], // Previene error de rango
+          color:
+              colors[_currentIndex % colors.length], // Previene error de rango
           tabBackgroundColor: colors[_currentIndex % colors.length],
           selectedIndex: _currentIndex,
           tabBorderRadius: 10,
