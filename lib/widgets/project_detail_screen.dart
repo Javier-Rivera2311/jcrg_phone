@@ -136,7 +136,7 @@ class ProjectDetailScreen extends StatelessWidget {
                                   onPressed: () async {
                                     await http.delete(
                                       Uri.parse(
-                                          'https://backend-jcrg.onrender.com/user/Project/${project['id_server']}'),
+                                          'https://backend-jcrg.onrender.com/user/deleteProject/${project['id_server']}'),
                                     );
                                     refreshParent();
                                   },
