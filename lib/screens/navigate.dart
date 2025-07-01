@@ -6,6 +6,7 @@ import 'contact.dart';
 import 'meetings.dart';
 import 'workers.dart';
 import 'notifications.dart';
+import 'project.dart';
 import 'report.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,6 +39,7 @@ class _HomePageState extends State<HomePage> {
       const WorkerScreen(),
       const NotificationScreen(),
       const MessagesScreen(),
+      const ProjectScreen(),
       const ReportScreen(),
     ];
   }
@@ -149,10 +151,18 @@ class _HomePageState extends State<HomePage> {
                     },
                   ),
                   ListTile(
+                    leading: const Icon(Icons.work), // Icono para Proyecto
+                    title: const Text('Proyecto'),
+                    onTap: () {
+                      setState(() => _currentIndex = 7);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
                     leading: const Icon(Icons.report),
                     title: const Text('Reportar problema'),
                     onTap: () {
-                      setState(() => _currentIndex = 7);
+                      setState(() => _currentIndex = 8);
                       Navigator.pop(context);
                     },
                   ),
