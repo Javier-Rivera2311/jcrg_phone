@@ -98,6 +98,7 @@ class _HomeState extends State<Home> {
                       _buildButton(Icons.contact_page, 'Contactos', Colors.purpleAccent, buttonWidth, 2),
                       _buildButton(Icons.people, 'Personal', Colors.teal, buttonWidth, 4),
                       _buildButton(Icons.notifications, 'Notificaciones', const Color.fromARGB(255, 2, 189, 202), buttonWidth, 5),
+                      _buildButton(Icons.work, 'Proyecto', Colors.indigo, buttonWidth, 7),
                     ],
                   );
                 },
@@ -107,7 +108,7 @@ class _HomeState extends State<Home> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    widget.onNavigate?.call(7); // Ir a Reportar Problema
+                    widget.onNavigate?.call(8); // Ir a Reportar Problema (ajustado el índice)
                   },
                   icon: const Icon(Icons.report_problem, color: Colors.white),
                   label: const Text('Reportar Problema'),
