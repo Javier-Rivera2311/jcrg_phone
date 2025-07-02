@@ -125,6 +125,8 @@ class ProjectDetailScreen extends StatelessWidget {
                               Center(
                                 child: ElevatedButton.icon(
                                   onPressed: () async {
+                                    // Debug: imprimir el proyecto para verificar el ID
+                                    print('Project data: $project');
                                     // Navegar al formulario de edición
                                     final changed = await Navigator.push(
                                       context,

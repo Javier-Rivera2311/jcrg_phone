@@ -101,8 +101,21 @@ class _FormularyProjectState extends State<FormularyProject> {
 
       if (widget.isEdit && widget.initialData != null) {
         // Modo edición: usar PUT
-        url =
-            'https://backend-jcrg.onrender.com/user/updateProject/${widget.initialData!['id_server']}';
+        print('Initial data: ${widget.initialData}'); // Debug
+        final projectId = widget.initialData!['id_server'] ??
+                         widget.initialData!['ID'] ??
+                         widget.initialData!['id'];
+        print('Project ID found: $projectId'); // Debug
+        
+        if (projectId == null) {
+          print('Available keys in initialData: ${widget.initialData!.keys.toList()}'); // Debug
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error: ID del proyecto no encontrado')),
+          );
+          return;
+        }
+        url = 'https://backend-jcrg.onrender.com/user/updateProject/$projectId';
+        print('PUT URL: $url'); // Debug
         response = await http.put(
           Uri.parse(url),
           headers: {'Content-Type': 'application/json'},
@@ -118,6 +131,9 @@ class _FormularyProjectState extends State<FormularyProject> {
         );
       }
 
+      print('Response status: ${response.statusCode}'); // Debug
+      print('Response body: ${response.body}'); // Debug
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -131,11 +147,12 @@ class _FormularyProjectState extends State<FormularyProject> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(widget.isEdit
-                  ? 'Error al actualizar el proyecto'
-                  : 'Error al crear el proyecto')),
+                  ? 'Error al actualizar el proyecto: ${response.statusCode}'
+                  : 'Error al crear el proyecto: ${response.statusCode}')),
         );
       }
     } catch (e) {
+      print('Error: $e'); // Debug
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error de conexión: $e')),
       );

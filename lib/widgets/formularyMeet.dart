@@ -63,30 +63,61 @@ class _FormularyMeetState extends State<FormularyMeet> {
 
     setState(() => isLoading = true);
 
-    final response = await http.post(
-      Uri.parse('https://backend-jcrg.onrender.com/user/addMeeting'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        "date": _dateController.text,
-        "time": _timeController.text,
-        "type": _type,
-        "Title": _titleController.text,
-        "details": _detailsController.text,
-        "url": _type == 'virtual' ? _urlController.text : null,
-        "address": _type == 'presencial' ? _addressController.text : null,
-      }),
-    );
+    final bool isEditing = widget.meeting != null;
+    final String url = isEditing 
+        ? 'https://backend-jcrg.onrender.com/user/updateMeeting/${widget.meeting!['id'] ?? widget.meeting!['ID']}'
+        : 'https://backend-jcrg.onrender.com/user/addMeeting';
+    
+    // Convertir fecha de dd-MM-yyyy a yyyy-MM-dd
+    String formattedDate = _dateController.text;
+    if (formattedDate.contains('-') && formattedDate.length == 10) {
+      final parts = formattedDate.split('-');
+      if (parts.length == 3 && parts[0].length == 2) {
+        // Si está en formato dd-MM-yyyy, convertir a yyyy-MM-dd
+        formattedDate = '${parts[2]}-${parts[1]}-${parts[0]}';
+      }
+    }
+    
+    final response = isEditing 
+        ? await http.put(
+            Uri.parse(url),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              "date": formattedDate,
+              "time": _timeController.text,
+              "type": _type,
+              "Title": _titleController.text, // Usar Title consistentemente
+              "details": _detailsController.text,
+              "url": _type == 'virtual' ? _urlController.text : null,
+              "address": _type == 'presencial' ? _addressController.text : null,
+            }),
+          )
+        : await http.post(
+            Uri.parse(url),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              "date": formattedDate,
+              "time": _timeController.text,
+              "type": _type,
+              "Title": _titleController.text,
+              "details": _detailsController.text,
+              "url": _type == 'virtual' ? _urlController.text : null,
+              "address": _type == 'presencial' ? _addressController.text : null,
+            }),
+          );
 
-    setState(() => isLoading = false);
+    if (mounted) {
+      setState(() => isLoading = false);
+    }
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Reunión creada correctamente')),
+        SnackBar(content: Text(isEditing ? 'Reunión actualizada correctamente' : 'Reunión creada correctamente')),
       );
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al crear la reunión')),
+        SnackBar(content: Text(isEditing ? 'Error al actualizar la reunión' : 'Error al crear la reunión')),
       );
     }
   }
@@ -105,7 +136,7 @@ class _FormularyMeetState extends State<FormularyMeet> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Formulario de Reunión')),
+      appBar: AppBar(title: Text(widget.meeting != null ? 'Editar Reunión' : 'Formulario de Reunión')),
       body: Center(
         child: Card(
           elevation: 8,
@@ -252,9 +283,9 @@ class _FormularyMeetState extends State<FormularyMeet> {
                       : ElevatedButton.icon(
                           onPressed: submitMeet,
                           icon: const Icon(Icons.save, color: Colors.white),
-                          label: const Text(
-                            'Guardar',
-                            style: TextStyle(
+                          label: Text(
+                            widget.meeting != null ? 'Actualizar' : 'Guardar',
+                            style: const TextStyle(
                                 color: Colors.white, fontWeight: FontWeight.bold),
                           ),
                           style: ElevatedButton.styleFrom(

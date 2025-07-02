@@ -32,10 +32,13 @@ class _ProjectScreenState extends State<ProjectScreen> {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final List projects = data['proyectos'];
+      
+      print('Raw projects data: $projects'); // Debug - para ver la estructura
 
       Map<String, List<Map<String, dynamic>>> grouped = {};
 
       for (var project in projects) {
+        print('Project: $project'); // Debug - para ver cada proyecto individual
         final String city = project['city'] ?? 'Sin ciudad';
         if (!grouped.containsKey(city)) {
           grouped[city] = [];

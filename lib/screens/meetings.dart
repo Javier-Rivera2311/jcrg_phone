@@ -39,7 +39,9 @@ class _MeetingScreenState extends State<MeetingScreen> {
         }
       }
     }
-    setState(() => isLoading = false);
+    if (mounted) {
+      setState(() => isLoading = false);
+    }
   }
 
   List<Map<String, dynamic>> filterMeetings(List<Map<String, dynamic>> meetings) {
