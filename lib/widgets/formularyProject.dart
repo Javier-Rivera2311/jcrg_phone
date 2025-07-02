@@ -103,14 +103,16 @@ class _FormularyProjectState extends State<FormularyProject> {
         // Modo edición: usar PUT
         print('Initial data: ${widget.initialData}'); // Debug
         final projectId = widget.initialData!['id_server'] ??
-                         widget.initialData!['ID'] ??
-                         widget.initialData!['id'];
+            widget.initialData!['ID'] ??
+            widget.initialData!['id'];
         print('Project ID found: $projectId'); // Debug
-        
+
         if (projectId == null) {
-          print('Available keys in initialData: ${widget.initialData!.keys.toList()}'); // Debug
+          print(
+              'Available keys in initialData: ${widget.initialData!.keys.toList()}'); // Debug
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error: ID del proyecto no encontrado')),
+            const SnackBar(
+                content: Text('Error: ID del proyecto no encontrado')),
           );
           return;
         }
