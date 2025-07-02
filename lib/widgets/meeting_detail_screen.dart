@@ -15,18 +15,17 @@ class MeetingDetailScreen extends StatelessWidget {
     String formattedDate = '';
     if (meeting['date'] != null && meeting['date'].toString().isNotEmpty) {
       try {
-        // Soporta fechas tipo '2025-06-26T00:00:00.000Z' y '2025-06-26'
         String dateStr = meeting['date'].toString();
         DateTime date = DateTime.parse(dateStr);
         formattedDate = '${date.day.toString().padLeft(2, '0')}-'
             '${date.month.toString().padLeft(2, '0')}-'
             '${date.year}';
       } catch (_) {
-        // Si falla el parseo, intenta extraer solo la parte de la fecha
         final dateStr = meeting['date'].toString();
         final match = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(dateStr);
         if (match != null) {
-          formattedDate = '${match.group(3)}-${match.group(2)}-${match.group(1)}';
+          formattedDate =
+              '${match.group(3)}-${match.group(2)}-${match.group(1)}';
         } else {
           formattedDate = dateStr;
         }
@@ -53,21 +52,30 @@ class MeetingDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(meeting['title'] ?? meeting['Title'] ?? 'Detalle reunión'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          20,
+          20,
+          MediaQuery.of(context).viewInsets.bottom +
+              32, // espacio inferior adaptativo
+        ),
         child: Card(
           elevation: 6,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(meeting['title'] ?? meeting['Title'] ?? 'Sin título',
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                    style: const TextStyle(
+                        fontSize: 22, fontWeight: FontWeight.bold)),
                 const Divider(height: 20, thickness: 1.2),
                 ListTile(
-                  leading: const Icon(Icons.calendar_today, color: Colors.green),
+                  leading:
+                      const Icon(Icons.calendar_today, color: Colors.green),
                   title: const Text("Fecha"),
                   subtitle: Text(formattedDate),
                 ),
@@ -78,13 +86,19 @@ class MeetingDetailScreen extends StatelessWidget {
                 ),
                 ListTile(
                   leading: Icon(
-                    meeting['type'] == 'virtual' ? Icons.videocam : Icons.location_on,
-                    color: meeting['type'] == 'virtual' ? Colors.deepPurple : Colors.blue,
+                    meeting['type'] == 'virtual'
+                        ? Icons.videocam
+                        : Icons.location_on,
+                    color: meeting['type'] == 'virtual'
+                        ? Colors.deepPurple
+                        : Colors.blue,
                   ),
                   title: const Text("Tipo"),
                   subtitle: Text(meeting['type'] ?? ''),
                 ),
-                if (meeting['type'] == 'virtual' && meeting['url'] != null && meeting['url'].toString().isNotEmpty)
+                if (meeting['type'] == 'virtual' &&
+                    meeting['url'] != null &&
+                    meeting['url'].toString().isNotEmpty)
                   ListTile(
                     leading: const Icon(Icons.link, color: Colors.teal),
                     title: const Text("URL"),
@@ -96,7 +110,8 @@ class MeetingDetailScreen extends StatelessWidget {
                         } else {
                           Clipboard.setData(ClipboardData(text: url));
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('URL copiada al portapapeles')),
+                            const SnackBar(
+                                content: Text('URL copiada al portapapeles')),
                           );
                         }
                       },
@@ -109,15 +124,19 @@ class MeetingDetailScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                if (meeting['type'] == 'presencial' && meeting['address'] != null && meeting['address'].toString().isNotEmpty)
+                if (meeting['type'] == 'presencial' &&
+                    meeting['address'] != null &&
+                    meeting['address'].toString().isNotEmpty)
                   ListTile(
-                    leading: const Icon(Icons.location_on, color: Colors.orange),
+                    leading:
+                        const Icon(Icons.location_on, color: Colors.orange),
                     title: const Text("Dirección"),
                     subtitle: Text(meeting['address']),
                   ),
                 if (meeting['details'] != null)
                   ListTile(
-                    leading: const Icon(Icons.description, color: Colors.purple),
+                    leading:
+                        const Icon(Icons.description, color: Colors.purple),
                     title: const Text("Detalles"),
                     subtitle: Text(meeting['details']),
                   ),
@@ -134,12 +153,13 @@ class MeetingDetailScreen extends StatelessWidget {
                           ),
                         );
                         if (result == true) {
-                          Navigator.pop(context, true); // Volver con resultado para recargar
+                          Navigator.pop(context, true);
                         }
                       },
                       icon: const Icon(Icons.edit),
                       label: const Text("Editar"),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue),
                     ),
                     const SizedBox(width: 16),
                     ElevatedButton.icon(
@@ -148,7 +168,8 @@ class MeetingDetailScreen extends StatelessWidget {
                           context: context,
                           builder: (context) => AlertDialog(
                             title: const Text('Confirmar eliminación'),
-                            content: const Text('¿Estás seguro de que deseas eliminar esta reunión?'),
+                            content: const Text(
+                                '¿Estás seguro de que deseas eliminar esta reunión?'),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context, false),
@@ -157,30 +178,36 @@ class MeetingDetailScreen extends StatelessWidget {
                               ElevatedButton(
                                 onPressed: () => Navigator.pop(context, true),
                                 child: const Text('Eliminar'),
-                                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red),
                               ),
                             ],
                           ),
                         );
                         if (confirm == true) {
                           final id = meeting['id'] ?? meeting['ID'];
-                          final url = 'https://backend-jcrg.onrender.com/user/deleteMeeting/$id';
+                          final url =
+                              'https://backend-jcrg.onrender.com/user/deleteMeeting/$id';
                           final response = await http.delete(Uri.parse(url));
                           if (response.statusCode == 200) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Reunión eliminada')),
+                              const SnackBar(
+                                  content: Text('Reunión eliminada')),
                             );
                             Navigator.pop(context, true);
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Error al eliminar la reunión')),
+                              const SnackBar(
+                                  content:
+                                      Text('Error al eliminar la reunión')),
                             );
                           }
                         }
                       },
                       icon: const Icon(Icons.delete),
                       label: const Text("Eliminar"),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                      style:
+                          ElevatedButton.styleFrom(backgroundColor: Colors.red),
                     ),
                   ],
                 ),
