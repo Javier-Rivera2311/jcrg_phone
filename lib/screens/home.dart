@@ -92,13 +92,12 @@ class _HomeState extends State<Home> {
                     runSpacing: 10,
                     alignment: WrapAlignment.center,
                     children: [
-                      _buildButton(Icons.task, 'Tareas', const Color.fromARGB(255, 33, 192, 38), buttonWidth, 1),
-                      _buildButton(Icons.meeting_room, 'Reuniones', Colors.blueAccent, buttonWidth, 3),
-                      _buildButton(Icons.message, 'Mensajes', Colors.orangeAccent, buttonWidth, 6),
-                      _buildButton(Icons.contact_page, 'Contactos', Colors.purpleAccent, buttonWidth, 2),
-                      _buildButton(Icons.people, 'Personal', Colors.teal, buttonWidth, 4),
-                      _buildButton(Icons.notifications, 'Notificaciones', const Color.fromARGB(255, 2, 189, 202), buttonWidth, 5),
-                      _buildButton(Icons.work, 'Proyecto', Colors.indigo, buttonWidth, 7),
+                      _buildButton(Icons.task, 'Tareas', Color(0xFF2196F3), buttonWidth, 1),
+                      _buildButton(Icons.contact_page, 'Contactos', Color(0xFF1E88E5), buttonWidth, 2),
+                      _buildButton(Icons.meeting_room, 'Reuniones', Color(0xFF1565C0), buttonWidth, 3),
+                      _buildButton(Icons.work, 'Proyecto', Color.fromARGB(255, 116, 169, 255), buttonWidth, 6),
+                      _buildButton(Icons.people, 'Personal', Color(0xFF2962FF), buttonWidth, 4),
+                      _buildButton(Icons.notifications, 'Notificaciones', Color(0xFF1976D2), buttonWidth, 5),
                     ],
                   );
                 },
@@ -108,7 +107,7 @@ class _HomeState extends State<Home> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    widget.onNavigate?.call(8); // Ir a Reportar Problema (ajustado el índice)
+                    widget.onNavigate?.call(7); // Ir a Reportar Problema (ajustado el índice)
                   },
                   icon: const Icon(Icons.report_problem, color: Colors.white),
                   label: const Text('Reportar Problema'),
@@ -146,3 +145,4 @@ class _HomeState extends State<Home> {
     );
   }
 }
+

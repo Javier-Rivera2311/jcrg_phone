@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'home.dart'; // Importa las pantallas
-import 'messages.dart';
 import 'task.dart';
 import 'contact.dart';
 import 'meetings.dart';
@@ -38,7 +37,6 @@ class _HomePageState extends State<HomePage> {
       const MeetingScreen(),
       const WorkerScreen(),
       const NotificationScreen(),
-      const MessagesScreen(),
       const ProjectScreen(),
       const ReportScreen(),
     ];
@@ -51,7 +49,6 @@ class _HomePageState extends State<HomePage> {
     Color(0xFF1565C0), // Azul más oscuro, reuniones
     Color(0xFF2962FF), // Azul eléctrico, personal
     Color(0xFF1976D2), // Azul vibrante, notificaciones
-    Color(0xFF0D47A1), // Azul profundo
     Color.fromARGB(255, 116, 169, 255), // Azul pastel
     Color.fromARGB(255, 255, 33, 33), // reportar problema
   ];
@@ -68,12 +65,10 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: colors[_currentIndex],
         actions: [
           IconButton(
-            icon:
-                const Icon(Icons.message, color: Color.fromARGB(255, 0, 0, 0)),
+            icon: const Icon(Icons.notifications, color: Colors.white),
             onPressed: () {
-              // Cambia al índice de la pantalla de mensajes
               setState(() {
-                _currentIndex = 6; // Índice correcto de la pantalla de mensajes
+                _currentIndex = 5; // Índice de la pantalla de notificaciones
               });
             },
           ),
@@ -144,18 +139,10 @@ class _HomePageState extends State<HomePage> {
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.message),
-                    title: const Text('Mensajes'),
-                    onTap: () {
-                      setState(() => _currentIndex = 6);
-                      Navigator.pop(context);
-                    },
-                  ),
-                  ListTile(
                     leading: const Icon(Icons.work), // Icono para Proyecto
                     title: const Text('Proyecto'),
                     onTap: () {
-                      setState(() => _currentIndex = 7);
+                      setState(() => _currentIndex = 6);
                       Navigator.pop(context);
                     },
                   ),
@@ -163,7 +150,7 @@ class _HomePageState extends State<HomePage> {
                     leading: const Icon(Icons.report),
                     title: const Text('Reportar problema'),
                     onTap: () {
-                      setState(() => _currentIndex = 8);
+                      setState(() => _currentIndex = 7);
                       Navigator.pop(context);
                     },
                   ),

@@ -126,13 +126,16 @@ class MeetingDetailScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
+                      onPressed: () async {
+                        final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (_) => FormularyMeet(meeting: meeting),
                           ),
                         );
+                        if (result == true) {
+                          Navigator.pop(context, true); // Volver con resultado para recargar
+                        }
                       },
                       icon: const Icon(Icons.edit),
                       label: const Text("Editar"),

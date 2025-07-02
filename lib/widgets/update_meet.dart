@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+// Este archivo puede ser eliminado ya que FormularyMeet maneja tanto creación como edición
+
 class UpdateMeetScreen extends StatefulWidget {
   final Map<String, dynamic> meeting;
 
