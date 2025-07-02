@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jcrg_phone/screens/navigate.dart';
+import 'package:jcrg_phone/services/email_memory_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -17,6 +18,44 @@ class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool isLoading = false;
   String? errorMessage;
+  bool hasRememberedEmail = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLastEmail();
+  }
+
+  /// Cargar el último correo usando el servicio
+  Future<void> _loadLastEmail() async {
+    final lastEmail = await EmailMemoryService.getLastEmail();
+
+    if (lastEmail != null && mounted) {
+      setState(() {
+        emailController.text = lastEmail;
+        hasRememberedEmail = true;
+      });
+    }
+  }
+
+  /// Limpiar el correo guardado usando el servicio
+  void _clearSavedEmail() async {
+    final success = await EmailMemoryService.clearLastEmail();
+
+    if (success && mounted) {
+      setState(() {
+        emailController.clear();
+        hasRememberedEmail = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Correo eliminado'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
 
   void _login() async {
     setState(() {
@@ -25,9 +64,10 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     final url = Uri.parse('https://backend-jcrg.onrender.com/user/login');
+    final email = emailController.text.trim();
 
     final body = {
-      "email": emailController.text.trim(),
+      "email": email,
       "password": passwordController.text,
     };
 
@@ -42,14 +82,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (response.statusCode == 200 && data['success'] == true) {
         final prefs = await SharedPreferences.getInstance();
+
+        // Guardar datos de sesión
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('userName', data['name'] ?? '');
         await prefs.setString('userEmail', data['email']);
         await prefs.setInt('department_id', data['department_id']);
-        await prefs.setString(
-            'token', data['token']); // <-- Guarda el token aquí
+        await prefs.setString('token', data['token']);
+
+        // Guardar el último correo exitoso usando el servicio
+        await EmailMemoryService.saveLastEmail(email);
+
+        print('Login exitoso para: $email');
         print('Token guardado: ${data['token']}');
-        Navigator.pushReplacementNamed(context, '/home');
+
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
       } else {
         setState(() {
           errorMessage = data['error'] ?? 'Credenciales inválidas';
@@ -67,18 +116,24 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Fondo azul degradado
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF1976D2), // Azul fuerte
-              Color(0xFF42A5F5), // Azul medio
-              Color(0xFFBBDEFB), // Azul claro
+              Color(0xFF1976D2),
+              Color(0xFF42A5F5),
+              Color(0xFFBBDEFB),
             ],
           ),
         ),
@@ -137,12 +192,23 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderSide: BorderSide.none,
                       ),
                       prefixIcon: const Icon(Icons.email, color: Colors.white),
+                      suffixIcon: emailController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear,
+                                  color: Colors.white70),
+                              onPressed: _clearSavedEmail,
+                              tooltip: 'Limpiar correo guardado',
+                            )
+                          : null,
                     ),
                     style: const TextStyle(color: Colors.white),
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) => value == null || value.isEmpty
                         ? "Ingrese su correo"
                         : null,
+                    onChanged: (value) {
+                      setState(() {}); // Para actualizar el suffixIcon
+                    },
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -164,15 +230,59 @@ class _LoginScreenState extends State<LoginScreen> {
                         ? "Ingrese su contraseña"
                         : null,
                   ),
-                  const SizedBox(height: 24),
-                  if (errorMessage != null)
-                    Text(
-                      errorMessage!,
-                      style: const TextStyle(
-                          color: Colors.yellowAccent,
-                          fontWeight: FontWeight.bold),
-                    ),
                   const SizedBox(height: 8),
+                  // Indicador de correo recordado
+                  if (hasRememberedEmail)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.info_outline,
+                              color: Colors.white70, size: 16),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Correo recordado del último acceso",
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                  // Mensaje de error mejorado
+                  if (errorMessage != null)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.red.withOpacity(0.5)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: Colors.red),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              errorMessage!,
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -184,7 +294,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               }
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1565C0), // Azul oscuro
+                        backgroundColor: const Color(0xFF1565C0),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -210,9 +320,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.pushNamed(context, '/register');
                       },
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF1976D2),
-                        side: const BorderSide(
-                            color: Color(0xFF1976D2), width: 2),
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: Colors.white, width: 2),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
