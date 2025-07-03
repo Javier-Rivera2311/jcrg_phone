@@ -44,6 +44,15 @@ dev_dependencies:
   shared_preferences: ^2.2.0
   flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.13.1
+  msix: ^3.16.9
+
+msix_config:
+  display_name: JCRG App
+  published_display_name: Javier Rivera
+  identity_name: company.suite.jcrgapp
+  msix_version: 1.0.0.0
+  signing_certificate_path: "C:/Users/javie/Desktop/jcrg_certificado.pfx"
+  signing_certificate_password: "Jcrg2025"
 
 flutter_launcher_icons:
   android: true
