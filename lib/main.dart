@@ -64,7 +64,8 @@ class MyApp extends StatelessWidget {
         '/workers': (context) => const WorkerScreen(),
         '/notifications': (context) => const NotificationScreen(),
         '/messages': (context) => const MessagesScreen(),
-        '/projects': (context) => const ProjectScreen(), // <--- AGREGA ESTA LÍNEA
+        '/projects': (context) =>
+            const ProjectScreen(), // <--- AGREGA ESTA LÍNEA
         '/report': (context) => const ReportScreen(),
       },
     );
