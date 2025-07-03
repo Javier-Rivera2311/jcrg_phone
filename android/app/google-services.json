@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "873393411636",
+    "project_id": "jcrg-f6431",
+    "storage_bucket": "jcrg-f6431.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:873393411636:android:ff634fb175c628fe44dc61",
+        "android_client_info": {
+          "package_name": "com.example.jcrg_phone"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzIMWLXiK5ss7ThmPNhsRbHg5PvdFIsIQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

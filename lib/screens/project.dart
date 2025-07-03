@@ -32,7 +32,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final List projects = data['proyectos'];
-      
+
       print('Raw projects data: $projects'); // Debug - para ver la estructura
 
       Map<String, List<Map<String, dynamic>>> grouped = {};
@@ -59,11 +59,13 @@ class _ProjectScreenState extends State<ProjectScreen> {
 
     Map<String, List<Map<String, dynamic>>> filtered = {};
     for (var entry in groupedProjects.entries) {
+      final city = entry.key.toLowerCase();
       final filteredProjects = entry.value.where((project) {
         final name = (project['Name_project'] ?? '').toString().toLowerCase();
         final inCharge = (project['in_charge'] ?? '').toString().toLowerCase();
         return name.contains(_searchQuery.toLowerCase()) ||
-            inCharge.contains(_searchQuery.toLowerCase());
+            inCharge.contains(_searchQuery.toLowerCase()) ||
+            city.contains(_searchQuery.toLowerCase());
       }).toList();
       if (filteredProjects.isNotEmpty) {
         filtered[entry.key] = filteredProjects;
@@ -134,7 +136,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
               ),
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Buscar por nombre o encargado',
+                  hintText: 'Buscar por nombre, encargado o ciudad',
                   prefixIcon: const Icon(Icons.search, color: Colors.grey),
                   border: InputBorder.none,
                   contentPadding:
