@@ -40,7 +40,7 @@ class _WorkerScreenState extends State<WorkerScreen> {
   Future<void> fetchWorkers() async {
     try {
       final response = await http
-          .get(Uri.parse('https://backend-jcrg.onrender.com/user/mostrar'));
+          .get(Uri.parse('https://backend-jcrgapp.onrender.com/user/mostrar'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {

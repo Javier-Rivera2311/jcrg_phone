@@ -26,7 +26,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
 
   Future<void> fetchProjects() async {
     final response = await http.get(
-      Uri.parse('https://backend-jcrg.onrender.com/user/Project'),
+      Uri.parse('https://backend-jcrgapp.onrender.com/user/Project'),
     );
 
     if (response.statusCode == 200) {

@@ -63,7 +63,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       successMessage = null;
     });
 
-    final url = Uri.parse('https://backend-jcrg.onrender.com/user/ingresar');
+    final url = Uri.parse('https://backend-jcrgapp.onrender.com/user/ingresar');
 
     final body = {
       "name": nameController.text.trim(),

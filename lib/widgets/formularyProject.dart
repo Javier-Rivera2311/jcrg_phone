@@ -51,7 +51,7 @@ class _FormularyProjectState extends State<FormularyProject> {
   Future<void> fetchWorkers() async {
     try {
       final response = await http
-          .get(Uri.parse('https://backend-jcrg.onrender.com/user/listWorker'));
+          .get(Uri.parse('https://backend-jcrgapp.onrender.com/user/listWorker'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final meetings = data['meetings'];
@@ -116,7 +116,7 @@ class _FormularyProjectState extends State<FormularyProject> {
           );
           return;
         }
-        url = 'https://backend-jcrg.onrender.com/user/updateProject/$projectId';
+        url = 'https://backend-jcrgapp.onrender.com/user/updateProject/$projectId';
         print('PUT URL: $url'); // Debug
         response = await http.put(
           Uri.parse(url),
@@ -125,7 +125,7 @@ class _FormularyProjectState extends State<FormularyProject> {
         );
       } else {
         // Modo creación: usar POST
-        url = 'https://backend-jcrg.onrender.com/user/addProject';
+        url = 'https://backend-jcrgapp.onrender.com/user/addProject';
         response = await http.post(
           Uri.parse(url),
           headers: {'Content-Type': 'application/json'},

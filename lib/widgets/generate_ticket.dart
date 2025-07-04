@@ -29,7 +29,7 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
     }
 
     final response = await http.get(
-      Uri.parse('https://backend-jcrg.onrender.com/user/myTickets'),
+      Uri.parse('https://backend-jcrgapp.onrender.com/user/myTickets'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token', // <- clave para autenticación

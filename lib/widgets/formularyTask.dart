@@ -30,7 +30,7 @@ class _FormularyTaskState extends State<FormularyTask> {
 
   Future<void> fetchWorkers() async {
     final response = await http
-        .get(Uri.parse('https://backend-jcrg.onrender.com/user/listWorker'));
+        .get(Uri.parse('https://backend-jcrgapp.onrender.com/user/listWorker'));
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final meetings = data['meetings'];
@@ -44,7 +44,7 @@ class _FormularyTaskState extends State<FormularyTask> {
 
   Future<void> fetchCategories() async {
     final response = await http
-        .get(Uri.parse('https://backend-jcrg.onrender.com/user/Category'));
+        .get(Uri.parse('https://backend-jcrgapp.onrender.com/user/Category'));
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final meetings = data['meetings'];
@@ -64,7 +64,7 @@ class _FormularyTaskState extends State<FormularyTask> {
   }
 
   Future<void> submitForm() async {
-    final url = Uri.parse('https://backend-jcrg.onrender.com/user/addTask');
+    final url = Uri.parse('https://backend-jcrgapp.onrender.com/user/addTask');
     // Buscar el nombre de la categoría seleccionada
     final selectedCategory = _categoriesList.firstWhere(
       (cat) => cat['id'].toString() == _selectedCategoryId,

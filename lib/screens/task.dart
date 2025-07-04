@@ -24,7 +24,7 @@ class _TaskScreenState extends State<TaskScreen> {
 
   Future<void> fetchTasks() async {
     final response = await http
-        .get(Uri.parse('https://backend-jcrg.onrender.com/user/getTasks'));
+        .get(Uri.parse('https://backend-jcrgapp.onrender.com/user/getTasks'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);

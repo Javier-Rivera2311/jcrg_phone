@@ -187,7 +187,7 @@ class MeetingDetailScreen extends StatelessWidget {
                         if (confirm == true) {
                           final id = meeting['id'] ?? meeting['ID'];
                           final url =
-                              'https://backend-jcrg.onrender.com/user/deleteMeeting/$id';
+                              'https://backend-jcrgapp.onrender.com/user/deleteMeeting/$id';
                           final response = await http.delete(Uri.parse(url));
                           if (response.statusCode == 200) {
                             ScaffoldMessenger.of(context).showSnackBar(

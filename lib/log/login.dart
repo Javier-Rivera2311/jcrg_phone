@@ -63,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
       errorMessage = null;
     });
 
-    final url = Uri.parse('https://backend-jcrg.onrender.com/user/login');
+    final url = Uri.parse('https://backend-jcrgapp.onrender.com/user/login');
     final email = emailController.text.trim();
 
     final body = {
