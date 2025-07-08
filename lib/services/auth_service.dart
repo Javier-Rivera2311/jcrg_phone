@@ -5,7 +5,7 @@ import 'dart:convert';
 class AuthService {
   static const String _tokenKey = 'auth_token';
   static const String _userKey = 'user_data';
-  static const String baseUrl = 'https://backend-jcrg.onrender.com';
+  static const String baseUrl = 'https://backend-jcrgapp.onrender.com';
 
   // Guardar token después del login
   static Future<void> saveToken(String token) async {

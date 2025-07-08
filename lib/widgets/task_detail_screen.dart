@@ -152,7 +152,7 @@ class TaskDetailScreen extends StatelessWidget {
                                         nuevoEstado != task['state']) {
                                       await http.put(
                                         Uri.parse(
-                                            'https://backend-jcrg.onrender.com/user/Task/state'),
+                                            'https://backend-jcrgapp.onrender.com/user/Task/state'),
                                         headers: {
                                           'Content-Type': 'application/json'
                                         },
@@ -174,7 +174,7 @@ class TaskDetailScreen extends StatelessWidget {
                                   onPressed: () async {
                                     await http.delete(
                                       Uri.parse(
-                                          'https://backend-jcrg.onrender.com/user/Task/${task['ID']}'),
+                                          'https://backend-jcrgapp.onrender.com/user/Task/${task['ID']}'),
                                     );
                                     refreshParent();
                                   },

@@ -21,7 +21,7 @@ class _ReportScreenState extends State<ReportScreen> {
       print('Token enviado: $token');
       final response = await http.get(
         Uri.parse(
-            'https://backend-jcrg.onrender.com/user/departamentosUsuarios'),
+            'https://backend-jcrgapp.onrender.com/user/departamentosUsuarios'),
         headers: {
           'Authorization': 'Bearer $token',
         },

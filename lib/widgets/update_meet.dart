@@ -40,7 +40,7 @@ class _UpdateMeetScreenState extends State<UpdateMeetScreen> {
       try {
         final id = widget.meeting['id'] ?? widget.meeting['ID'];
         final response = await http.put(
-          Uri.parse('https://backend-jcrg.onrender.com/user/updateMeeting/$id'),
+          Uri.parse('https://backend-jcrgapp.onrender.com/user/updateMeeting/$id'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode({
             'title': titleController.text,

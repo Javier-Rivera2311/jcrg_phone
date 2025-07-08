@@ -36,7 +36,7 @@ class _EditContactFormState extends State<EditContactForm> {
       try {
         final response = await http.put(
           Uri.parse(
-              'https://backend-jcrg.onrender.com/user/updateContact/${widget.contact['ID']}'),
+              'https://backend-jcrgapp.onrender.com/user/updateContact/${widget.contact['ID']}'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode({
             'Name': nameController.text,
@@ -68,7 +68,7 @@ class _EditContactFormState extends State<EditContactForm> {
     try {
       final response = await http.delete(
         Uri.parse(
-            'https://backend-jcrg.onrender.com/user/deleteContact/${widget.contact['ID']}'),
+            'https://backend-jcrgapp.onrender.com/user/deleteContact/${widget.contact['ID']}'),
       );
 
       if (response.statusCode == 200) {

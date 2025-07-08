@@ -65,8 +65,8 @@ class _FormularyMeetState extends State<FormularyMeet> {
 
     final bool isEditing = widget.meeting != null;
     final String url = isEditing 
-        ? 'https://backend-jcrg.onrender.com/user/updateMeeting/${widget.meeting!['id'] ?? widget.meeting!['ID']}'
-        : 'https://backend-jcrg.onrender.com/user/addMeeting';
+        ? 'https://backend-jcrgapp.onrender.com/user/updateMeeting/${widget.meeting!['id'] ?? widget.meeting!['ID']}'
+        : 'https://backend-jcrgapp.onrender.com/user/addMeeting';
     
     // Convertir fecha de dd-MM-yyyy a yyyy-MM-dd
     String formattedDate = _dateController.text;

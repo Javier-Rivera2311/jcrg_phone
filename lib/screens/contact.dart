@@ -37,7 +37,7 @@ class _ContactScreenState extends State<ContactScreen> {
   Future<void> fetchContacts() async {
     try {
       final response = await http
-          .get(Uri.parse('https://backend-jcrg.onrender.com/user/Contacts'));
+          .get(Uri.parse('https://backend-jcrgapp.onrender.com/user/Contacts'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         List<dynamic> usuarios = data['usuarios'];

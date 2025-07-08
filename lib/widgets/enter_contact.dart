@@ -22,7 +22,7 @@ class _EnterContactFormState extends State<EnterContactForm> {
     if (_formKey.currentState!.validate()) {
       try {
         final response = await http.post(
-          Uri.parse('https://backend-jcrg.onrender.com/user/addContact'),
+          Uri.parse('https://backend-jcrgapp.onrender.com/user/addContact'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode({
             'Name': nameController.text,

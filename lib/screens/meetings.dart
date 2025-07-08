@@ -25,7 +25,7 @@ class _MeetingScreenState extends State<MeetingScreen> {
 
   Future<void> fetchMeetings() async {
     setState(() => isLoading = true);
-    final response = await http.get(Uri.parse('https://backend-jcrg.onrender.com/user/getMeetings'));
+    final response = await http.get(Uri.parse('https://backend-jcrgapp.onrender.com/user/getMeetings'));
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final List meetings = data['meetings'] ?? [];

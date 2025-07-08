@@ -20,7 +20,7 @@ class _CheckTicketViewState extends State<CheckTicketView> {
 
   Future<List<dynamic>> fetchTickets() async {
     final response = await http.get(
-      Uri.parse('https://backend-jcrg.onrender.com/user/tickets'),
+      Uri.parse('https://backend-jcrgapp.onrender.com/user/tickets'),
     );
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -198,7 +198,7 @@ class _CheckTicketViewState extends State<CheckTicketView> {
   ) async {
     final response = await http.put(
       Uri.parse(
-          'https://backend-jcrg.onrender.com/user/updateTicket/${ticket['id']}'),
+          'https://backend-jcrgapp.onrender.com/user/updateTicket/${ticket['id']}'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'title': ticket['title'],
