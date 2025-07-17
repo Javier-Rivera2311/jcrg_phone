@@ -34,10 +34,10 @@ class _HomePageState extends State<HomePage> {
       Home(onNavigate: setTabIndex),
       const TaskScreen(),
       const ContactScreen(),
-      const MeetingScreen(),
+      const ProjectScreen(), // Cambiado de MeetingScreen a ProjectScreen
       const WorkerScreen(),
       const NotificationScreen(),
-      const ProjectScreen(),
+      const MeetingScreen(), // Cambiado de ProjectScreen a MeetingScreen
       const ReportScreen(),
     ];
   }
@@ -46,10 +46,10 @@ class _HomePageState extends State<HomePage> {
     Color(0xFF42A5F5), // Azul más intenso, home
     Color(0xFF2196F3), // Azul estándar, tareas
     Color(0xFF1E88E5), // Azul oscuro, contactos
-    Color(0xFF1565C0), // Azul más oscuro, reuniones
+    Color.fromARGB(255, 116, 169, 255), // Azul pastel, proyecto
     Color(0xFF2962FF), // Azul eléctrico, personal
     Color(0xFF1976D2), // Azul vibrante, notificaciones
-    Color.fromARGB(255, 116, 169, 255), // Azul pastel
+    Color(0xFF1565C0), // Azul más oscuro, reuniones
     Color.fromARGB(255, 255, 33, 33), // reportar problema
   ];
 
@@ -115,10 +115,10 @@ class _HomePageState extends State<HomePage> {
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.calendar_month),
-                    title: const Text('Reuniones'),
+                    leading: const Icon(Icons.work), // Icono para Proyecto
+                    title: const Text('Proyecto'),
                     onTap: () {
-                      setState(() => _currentIndex = 3);
+                      setState(() => _currentIndex = 3); // Cambiado de 6 a 3
                       Navigator.pop(context);
                     },
                   ),
@@ -139,10 +139,10 @@ class _HomePageState extends State<HomePage> {
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.work), // Icono para Proyecto
-                    title: const Text('Proyecto'),
+                    leading: const Icon(Icons.calendar_month),
+                    title: const Text('Reuniones'),
                     onTap: () {
-                      setState(() => _currentIndex = 6);
+                      setState(() => _currentIndex = 6); // Cambiado de 3 a 6
                       Navigator.pop(context);
                     },
                   ),
@@ -215,8 +215,8 @@ class _HomePageState extends State<HomePage> {
               textColor: Colors.white,
             ),
             GButton(
-              icon: Icons.meeting_room_rounded,
-              text: 'Reuniones',
+              icon: Icons.work,
+              text: 'Proyecto',
               iconActiveColor: Colors.white,
               textColor: Colors.white,
             ),
