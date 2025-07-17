@@ -18,6 +18,7 @@ class _EditContactFormState extends State<EditContactForm> {
   late TextEditingController phoneController;
   late TextEditingController communeController;
   late TextEditingController jobController;
+  late TextEditingController organizationController;
   late TextEditingController projectController;
 
   @override
@@ -28,6 +29,8 @@ class _EditContactFormState extends State<EditContactForm> {
     phoneController = TextEditingController(text: widget.contact['Phone']);
     communeController = TextEditingController(text: widget.contact['Commune']);
     jobController = TextEditingController(text: widget.contact['job']);
+    organizationController =
+        TextEditingController(text: widget.contact['organization']);
     projectController = TextEditingController(text: widget.contact['project']);
   }
 
@@ -44,9 +47,12 @@ class _EditContactFormState extends State<EditContactForm> {
             'Phone': phoneController.text,
             'Commune': communeController.text,
             'job': jobController.text,
+            'organization': organizationController.text,
             'project': projectController.text,
           }),
         );
+
+        if (!mounted) return;
 
         if (response.statusCode == 200) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -57,6 +63,7 @@ class _EditContactFormState extends State<EditContactForm> {
           throw Exception('Error al actualizar el contacto');
         }
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e')),
         );
@@ -71,6 +78,8 @@ class _EditContactFormState extends State<EditContactForm> {
             'https://backend-jcrgapp.onrender.com/user/deleteContact/${widget.contact['ID']}'),
       );
 
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Contacto eliminado con éxito')),
@@ -80,6 +89,7 @@ class _EditContactFormState extends State<EditContactForm> {
         throw Exception('Error al eliminar el contacto');
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
@@ -170,8 +180,17 @@ class _EditContactFormState extends State<EditContactForm> {
                   TextFormField(
                     controller: jobController,
                     decoration: const InputDecoration(
-                      labelText: 'Trabajo',
+                      labelText: 'Cargo',
                       prefixIcon: Icon(Icons.work),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: organizationController,
+                    decoration: const InputDecoration(
+                      labelText: 'Organización',
+                      prefixIcon: Icon(Icons.business),
                       border: OutlineInputBorder(),
                     ),
                   ),

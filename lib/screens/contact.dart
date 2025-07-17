@@ -66,8 +66,7 @@ class _ContactScreenState extends State<ContactScreen> {
       if (selectedLetter != null && query.isEmpty) {
         filteredContacts = contacts.where((contact) {
           final name = contact['Name'] ?? '';
-          return name.isNotEmpty &&
-              name[0].toUpperCase() == selectedLetter;
+          return name.isNotEmpty && name[0].toUpperCase() == selectedLetter;
         }).toList();
       } else {
         filteredContacts = contacts.where((contact) {
@@ -76,6 +75,7 @@ class _ContactScreenState extends State<ContactScreen> {
           final commune = contact['Commune']?.toLowerCase() ?? '';
           final phone = contact['Phone']?.toLowerCase() ?? '';
           final job = contact['job']?.toLowerCase() ?? '';
+          final organization = contact['organization']?.toLowerCase() ?? '';
           final project = contact['project']?.toLowerCase() ?? '';
 
           return name.contains(query) ||
@@ -83,6 +83,7 @@ class _ContactScreenState extends State<ContactScreen> {
               commune.contains(query) ||
               phone.contains(query) ||
               job.contains(query) ||
+              organization.contains(query) ||
               project.contains(query);
         }).toList();
       }
@@ -147,7 +148,7 @@ class _ContactScreenState extends State<ContactScreen> {
               child: TextField(
                 controller: searchController,
                 decoration: InputDecoration(
-                  hintText: 'Buscar por nombre, correo, comuna...',
+                  hintText: 'Buscar por nombre, correo, comuna, cargo...',
                   prefixIcon: const Icon(Icons.search, color: Colors.grey),
                   border: InputBorder.none,
                   contentPadding:
@@ -304,65 +305,96 @@ class _ContactScreenState extends State<ContactScreen> {
                           ),
                           children: [
                             const Divider(),
-                            Row(
-                              children: [
-                                const Icon(Icons.email,
-                                    color: Colors.deepPurple),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onLongPress: () {
-                                      final email = contact['email'] ?? '';
-                                      if (email.isNotEmpty) {
-                                        Clipboard.setData(
-                                            ClipboardData(text: email));
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                              content: Text(
-                                                  'Correo copiado al portapapeles')),
-                                        );
-                                      }
-                                    },
-                                    child: Text(
-                                      contact['email'] ?? 'No disponible',
-                                      style: const TextStyle(
-                                        color: Colors.blue,
-                                        decoration: TextDecoration.underline,
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.email,
+                                      color: Colors.deepPurple),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onLongPress: () {
+                                        final email = contact['email'] ?? '';
+                                        if (email.isNotEmpty) {
+                                          Clipboard.setData(
+                                              ClipboardData(text: email));
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                                content: Text(
+                                                    'Correo copiado al portapapeles')),
+                                          );
+                                        }
+                                      },
+                                      child: Text(
+                                        contact['email'] ?? 'No disponible',
+                                        style: const TextStyle(
+                                          color: Colors.blue,
+                                          decoration: TextDecoration.underline,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                             const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                const Icon(Icons.work, color: Colors.teal),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    contact['job'] ?? 'No disponible',
-                                    style: const TextStyle(fontSize: 15),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.work, color: Colors.teal),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      contact['job'] ?? 'No disponible',
+                                      style: const TextStyle(fontSize: 15),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                             const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                const Icon(Icons.assignment,
-                                    color: Colors.purple),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    contact['project'] ?? 'No disponible',
-                                    style: const TextStyle(fontSize: 15),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.business,
+                                      color: Colors.indigo),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      contact['organization'] ??
+                                          'No disponible',
+                                      style: const TextStyle(fontSize: 15),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 6),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.assignment,
+                                      color: Colors.purple),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      contact['project'] ?? 'No disponible',
+                                      style: const TextStyle(fontSize: 15),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 14),
                             Center(
                               child: ElevatedButton.icon(
                                 icon:
@@ -388,6 +420,7 @@ class _ContactScreenState extends State<ContactScreen> {
                                 },
                               ),
                             ),
+                            const SizedBox(height: 8),
                           ],
                         ),
                       );
