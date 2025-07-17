@@ -8,6 +8,17 @@ class ProjectDetailScreen extends StatelessWidget {
 
   const ProjectDetailScreen({super.key, required this.project});
 
+  String _formatDate(String? dateString) {
+    if (dateString == null || dateString.isEmpty) return 'No definida';
+
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}';
+    } catch (e) {
+      return dateString.split('T')[0]; // Fallback
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     void refreshParent() {
@@ -55,39 +66,85 @@ class ProjectDetailScreen extends StatelessWidget {
                             leading: const Icon(Icons.location_city,
                                 color: Colors.blue),
                             title: const Text("Ciudad"),
-                            subtitle: Text(project['city'] ?? ''),
+                            subtitle:
+                                Text(project['city'] ?? 'No especificada'),
                           ),
+                          if (project['init_date'] != null)
+                            ListTile(
+                              leading: const Icon(Icons.calendar_today_outlined,
+                                  color: Colors.green),
+                              title: const Text("Fecha de inicio"),
+                              subtitle: Text(_formatDate(project['init_date'])),
+                            ),
                           ListTile(
                             leading: const Icon(Icons.calendar_today,
-                                color: Colors.green),
+                                color: Colors.orange),
                             title: const Text("Fecha de finalización"),
-                            subtitle: Text(
-                              (project['end_date'] ?? '')
-                                  .toString()
-                                  .split("T")[0],
-                            ),
+                            subtitle: Text(_formatDate(project['end_date'])),
                           ),
+                          if (project['date_deliveries'] != null)
+                            ListTile(
+                              leading: const Icon(Icons.local_shipping,
+                                  color: Colors.teal),
+                              title: const Text("Fecha de entregas"),
+                              subtitle:
+                                  Text(_formatDate(project['date_deliveries'])),
+                            ),
+                          if (project['deliveries'] != null)
+                            ListTile(
+                              leading: const Icon(Icons.inventory,
+                                  color: Colors.indigo),
+                              title: const Text("Número de entregas"),
+                              subtitle: Text(project['deliveries'].toString()),
+                            ),
                           ListTile(
                             leading: const Icon(Icons.person,
                                 color: Colors.deepPurple),
                             title: const Text("Encargado"),
-                            subtitle: Text(project['in_charge'] ?? ''),
+                            subtitle:
+                                Text(project['in_charge'] ?? 'No asignado'),
                           ),
                           ListTile(
                             leading:
-                                const Icon(Icons.people, color: Colors.orange),
+                                const Icon(Icons.people, color: Colors.purple),
                             title: const Text("Trabajadores"),
-                            subtitle: Text(project['workers'] ?? ''),
+                            subtitle:
+                                Text(project['workers'] ?? 'No asignados'),
                           ),
-                          ListTile(
-                            leading: const Icon(Icons.description,
-                                color: Colors.teal),
-                            title: const Text("Observaciones"),
-                            subtitle: Text(project['observations'] ?? ''),
-                          ),
+                          if (project['mandate'] != null &&
+                              project['mandate'].toString().isNotEmpty)
+                            ListTile(
+                              leading:
+                                  const Icon(Icons.gavel, color: Colors.brown),
+                              title: const Text("Mandato"),
+                              subtitle: Text(project['mandate'].toString()),
+                            ),
+                          if (project['external'] != null &&
+                              project['external'].toString().isNotEmpty)
+                            ListTile(
+                              leading:
+                                  const Icon(Icons.public, color: Colors.cyan),
+                              title: const Text("Contactos externos"),
+                              subtitle: Text(project['external'].toString()),
+                            ),
+                          if (project['contracts'] != null)
+                            ListTile(
+                              leading: const Icon(Icons.description,
+                                  color: Colors.deepOrange),
+                              title: const Text("Contratos"),
+                              subtitle: Text(project['contracts'].toString()),
+                            ),
+                          if (project['observations'] != null &&
+                              project['observations'].toString().isNotEmpty)
+                            ListTile(
+                              leading:
+                                  const Icon(Icons.note, color: Colors.grey),
+                              title: const Text("Observaciones"),
+                              subtitle: Text(project['observations']),
+                            ),
                           ListTile(
                             leading:
-                                const Icon(Icons.folder, color: Colors.brown),
+                                const Icon(Icons.folder, color: Colors.amber),
                             title: const Text("Ruta del servidor"),
                             subtitle: Text(project['local_path'] ?? 'Sin ruta'),
                             trailing: project['local_path'] != null
@@ -100,23 +157,15 @@ class ProjectDetailScreen extends StatelessWidget {
                           ),
                           ListTile(
                             leading: const Icon(Icons.date_range,
-                                color: Colors.indigo),
+                                color: Colors.blueGrey),
                             title: const Text("Creado"),
-                            subtitle: Text(
-                              (project['created_at'] ?? '')
-                                  .toString()
-                                  .split("T")[0],
-                            ),
+                            subtitle: Text(_formatDate(project['created_at'])),
                           ),
                           ListTile(
                             leading:
                                 const Icon(Icons.update, color: Colors.grey),
                             title: const Text("Actualizado"),
-                            subtitle: Text(
-                              (project['updated_at'] ?? '')
-                                  .toString()
-                                  .split("T")[0],
-                            ),
+                            subtitle: Text(_formatDate(project['updated_at'])),
                           ),
                           const SizedBox(height: 20),
                           Column(

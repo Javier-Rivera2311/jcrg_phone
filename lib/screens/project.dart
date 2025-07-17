@@ -463,12 +463,25 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                 Expanded(
                                   child: _buildInfoChip(
                                     Icons.calendar_today,
+                                    'Fecha inicio',
+                                    _formatDate(project['init_date']),
+                                    Colors.blue,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: _buildInfoChip(
+                                    Icons.calendar_month,
                                     'Fecha fin',
                                     _formatDate(project['end_date']),
                                     Colors.orange,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
                                 Expanded(
                                   child: _buildInfoChip(
                                     Icons.person,
@@ -477,15 +490,82 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                     Colors.green,
                                   ),
                                 ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: _buildInfoChip(
+                                    Icons.group,
+                                    'Trabajadores',
+                                    project['workers']?.toString() ?? '0',
+                                    Colors.purple,
+                                  ),
+                                ),
                               ],
                             ),
-                            if (project['workers'] != null) ...[
+                            if (project['date_deliveries'] != null) ...[
                               const SizedBox(height: 8),
-                              _buildInfoChip(
-                                Icons.group,
-                                'Trabajadores',
-                                project['workers'].toString(),
-                                Colors.purple,
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildInfoChip(
+                                      Icons.local_shipping,
+                                      'Fecha entrega',
+                                      _formatDate(project['date_deliveries']),
+                                      Colors.teal,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: _buildInfoChip(
+                                      Icons.inventory,
+                                      'Entregas',
+                                      project['deliveries']?.toString() ?? '0',
+                                      Colors.indigo,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                            if (project['mandate'] != null ||
+                                project['external'] != null ||
+                                project['contracts'] != null) ...[
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  if (project['mandate'] != null)
+                                    Expanded(
+                                      child: _buildInfoChip(
+                                        Icons.gavel,
+                                        'Mandato',
+                                        project['mandate'].toString(),
+                                        Colors.brown,
+                                      ),
+                                    ),
+                                  if (project['mandate'] != null &&
+                                      (project['external'] != null ||
+                                          project['contracts'] != null))
+                                    const SizedBox(width: 8),
+                                  if (project['external'] != null)
+                                    Expanded(
+                                      child: _buildInfoChip(
+                                        Icons.public,
+                                        'Externo',
+                                        project['external'].toString(),
+                                        Colors.cyan,
+                                      ),
+                                    ),
+                                  if (project['external'] != null &&
+                                      project['contracts'] != null)
+                                    const SizedBox(width: 8),
+                                  if (project['contracts'] != null)
+                                    Expanded(
+                                      child: _buildInfoChip(
+                                        Icons.description,
+                                        'Contratos',
+                                        project['contracts'].toString(),
+                                        Colors.deepOrange,
+                                      ),
+                                    ),
+                                ],
                               ),
                             ],
                             if (project['observations'] != null) ...[
