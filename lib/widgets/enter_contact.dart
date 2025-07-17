@@ -16,6 +16,7 @@ class _EnterContactFormState extends State<EnterContactForm> {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController communeController = TextEditingController();
   final TextEditingController jobController = TextEditingController();
+  final TextEditingController organizationController = TextEditingController();
   final TextEditingController projectController = TextEditingController();
 
   Future<void> addContact() async {
@@ -30,6 +31,7 @@ class _EnterContactFormState extends State<EnterContactForm> {
             'Phone': phoneController.text,
             'Commune': communeController.text,
             'job': jobController.text,
+            'organization': organizationController.text,
             'project': projectController.text,
           }),
         );
@@ -136,6 +138,15 @@ class _EnterContactFormState extends State<EnterContactForm> {
                     decoration: const InputDecoration(
                       labelText: 'Trabajo',
                       prefixIcon: Icon(Icons.work),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: organizationController,
+                    decoration: const InputDecoration(
+                      labelText: 'Organización',
+                      prefixIcon: Icon(Icons.business),
                       border: OutlineInputBorder(),
                     ),
                   ),
