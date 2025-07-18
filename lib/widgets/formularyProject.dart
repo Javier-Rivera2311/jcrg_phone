@@ -16,9 +16,16 @@ class _FormularyProjectState extends State<FormularyProject> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameProjectController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _initDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
+  final TextEditingController _dateDeliveriesController =
+      TextEditingController();
+  final TextEditingController _deliveriesController = TextEditingController();
   final TextEditingController _observationsController = TextEditingController();
   final TextEditingController _localPathController = TextEditingController();
+  final TextEditingController _mandateController = TextEditingController();
+  final TextEditingController _externalController = TextEditingController();
+  final TextEditingController _contractsController = TextEditingController();
 
   List<String> _workersList = [];
   String? _selectedManager;
@@ -37,9 +44,15 @@ class _FormularyProjectState extends State<FormularyProject> {
     final data = widget.initialData!;
     _nameProjectController.text = data['Name_project'] ?? '';
     _cityController.text = data['city'] ?? '';
+    _initDateController.text = data['init_date'] ?? '';
     _endDateController.text = data['end_date'] ?? '';
+    _dateDeliveriesController.text = data['date_deliveries'] ?? '';
+    _deliveriesController.text = data['deliveries']?.toString() ?? '';
     _observationsController.text = data['observations'] ?? '';
     _localPathController.text = data['local_path'] ?? '';
+    _mandateController.text = data['mandate']?.toString() ?? '';
+    _externalController.text = data['external']?.toString() ?? '';
+    _contractsController.text = data['contracts']?.toString() ?? '';
     _selectedManager = data['in_charge'];
 
     // Convertir string de trabajadores a lista
@@ -50,8 +63,8 @@ class _FormularyProjectState extends State<FormularyProject> {
 
   Future<void> fetchWorkers() async {
     try {
-      final response = await http
-          .get(Uri.parse('https://backend-jcrgapp.onrender.com/user/listWorker'));
+      final response = await http.get(
+          Uri.parse('https://backend-jcrgapp.onrender.com/user/listWorker'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final meetings = data['meetings'];
@@ -70,9 +83,15 @@ class _FormularyProjectState extends State<FormularyProject> {
   void dispose() {
     _nameProjectController.dispose();
     _cityController.dispose();
+    _initDateController.dispose();
     _endDateController.dispose();
+    _dateDeliveriesController.dispose();
+    _deliveriesController.dispose();
     _observationsController.dispose();
     _localPathController.dispose();
+    _mandateController.dispose();
+    _externalController.dispose();
+    _contractsController.dispose();
     super.dispose();
   }
 
@@ -92,10 +111,29 @@ class _FormularyProjectState extends State<FormularyProject> {
       final body = {
         "Name_project": _nameProjectController.text,
         "city": _cityController.text,
+        "init_date": _initDateController.text,
         "end_date": _endDateController.text,
-        "observations": _observationsController.text,
+        "date_deliveries": _dateDeliveriesController.text.isNotEmpty
+            ? _dateDeliveriesController.text
+            : null,
+        "deliveries": _deliveriesController.text.isNotEmpty
+            ? int.tryParse(_deliveriesController.text)
+            : null,
+        "observations": _observationsController.text.isNotEmpty
+            ? _observationsController.text
+            : null,
         "workers": _selectedWorkers.join(', '),
-        "local_path": _localPathController.text,
+        "local_path": _localPathController.text.isNotEmpty
+            ? _localPathController.text
+            : null,
+        "mandate":
+            _mandateController.text.isNotEmpty ? _mandateController.text : null,
+        "external": _externalController.text.isNotEmpty
+            ? _externalController.text
+            : null,
+        "contracts": _contractsController.text.isNotEmpty
+            ? int.tryParse(_contractsController.text)
+            : null,
         "in_charge": _selectedManager,
       };
 
@@ -116,7 +154,8 @@ class _FormularyProjectState extends State<FormularyProject> {
           );
           return;
         }
-        url = 'https://backend-jcrgapp.onrender.com/user/updateProject/$projectId';
+        url =
+            'https://backend-jcrgapp.onrender.com/user/updateProject/$projectId';
         print('PUT URL: $url'); // Debug
         response = await http.put(
           Uri.parse(url),
@@ -165,9 +204,15 @@ class _FormularyProjectState extends State<FormularyProject> {
     _formKey.currentState?.reset();
     _nameProjectController.clear();
     _cityController.clear();
+    _initDateController.clear();
     _endDateController.clear();
+    _dateDeliveriesController.clear();
+    _deliveriesController.clear();
     _observationsController.clear();
     _localPathController.clear();
+    _mandateController.clear();
+    _externalController.clear();
+    _contractsController.clear();
     setState(() {
       _selectedManager = null;
       _selectedWorkers = [];
@@ -226,6 +271,28 @@ class _FormularyProjectState extends State<FormularyProject> {
                   ),
                   const SizedBox(height: 14),
                   TextFormField(
+                    controller: _initDateController,
+                    decoration: const InputDecoration(
+                      labelText: 'Fecha de inicio',
+                      prefixIcon: Icon(Icons.calendar_today_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                    readOnly: true,
+                    onTap: () async {
+                      DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) {
+                        _initDateController.text =
+                            picked.toLocal().toString().split(' ')[0];
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
                     controller: _endDateController,
                     decoration: const InputDecoration(
                       labelText: 'Fecha de finalización',
@@ -251,13 +318,81 @@ class _FormularyProjectState extends State<FormularyProject> {
                   ),
                   const SizedBox(height: 14),
                   TextFormField(
+                    controller: _dateDeliveriesController,
+                    decoration: const InputDecoration(
+                      labelText: 'Fecha de entregas (opcional)',
+                      prefixIcon: Icon(Icons.local_shipping),
+                      border: OutlineInputBorder(),
+                    ),
+                    readOnly: true,
+                    onTap: () async {
+                      DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) {
+                        _dateDeliveriesController.text =
+                            picked.toLocal().toString().split(' ')[0];
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: _deliveriesController,
+                    decoration: const InputDecoration(
+                      labelText: 'Url entregas(opcional)',
+                      prefixIcon: Icon(Icons.inventory),
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.text,
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _mandateController,
+                          decoration: const InputDecoration(
+                            labelText: 'Mandante (opcional)',
+                            prefixIcon: Icon(Icons.gavel),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _contractsController,
+                          decoration: const InputDecoration(
+                            labelText: 'Contratos (opcional)',
+                            prefixIcon: Icon(Icons.description),
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: _externalController,
+                    decoration: const InputDecoration(
+                      labelText: 'Contactos externos (opcional)',
+                      prefixIcon: Icon(Icons.public),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
                     controller: _observationsController,
                     decoration: const InputDecoration(
-                      labelText: 'Observaciones',
+                      labelText: 'Observaciones (opcional)',
                       prefixIcon: Icon(Icons.description),
                       border: OutlineInputBorder(),
                     ),
-                    maxLines: 2,
+                    maxLines: 3,
                   ),
                   const SizedBox(height: 14),
                   // Widget para selección múltiple de trabajadores
