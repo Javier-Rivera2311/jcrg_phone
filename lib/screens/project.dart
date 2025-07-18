@@ -102,10 +102,15 @@ class _ProjectScreenState extends State<ProjectScreen> {
     final now = DateTime.now();
     final daysLeft = endDateTime.difference(now).inDays;
 
-    if (daysLeft < 0) return Colors.red;
-    if (daysLeft <= 7) return Colors.orange;
-    if (daysLeft <= 30) return Colors.yellow;
-    return Colors.green;
+    if (daysLeft < 0)
+      return const Color.fromARGB(
+          255, 76, 175, 80); // Verde medio para finalizados
+    if (daysLeft <= 7)
+      return const Color.fromARGB(255, 244, 67, 54); // Rojo para urgentes
+    if (daysLeft <= 30)
+      return const Color.fromARGB(255, 33, 150, 243); // Azul para próximos
+    return const Color.fromARGB(
+        255, 21, 101, 192); // Azul oscuro para largo plazo
   }
 
   String _formatDate(String? dateString) {
@@ -381,14 +386,9 @@ class _ProjectScreenState extends State<ProjectScreen> {
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white,
-                            statusColor.withOpacity(0.05),
-                          ],
-                        ),
+                        color: isCompleted
+                            ? Colors.green.withOpacity(0.02)
+                            : Colors.blue.withOpacity(0.02),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
