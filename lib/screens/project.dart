@@ -535,7 +535,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                     Expanded(
                                       child: _buildInfoChip(
                                         Icons.gavel,
-                                        'Mandato',
+                                        'Mandante',
                                         project['mandate'].toString(),
                                         Colors.brown,
                                       ),

@@ -342,11 +342,11 @@ class _FormularyProjectState extends State<FormularyProject> {
                   TextFormField(
                     controller: _deliveriesController,
                     decoration: const InputDecoration(
-                      labelText: 'Número de entregas (opcional)',
+                      labelText: 'Url entregas(opcional)',
                       prefixIcon: Icon(Icons.inventory),
                       border: OutlineInputBorder(),
                     ),
-                    keyboardType: TextInputType.number,
+                    keyboardType: TextInputType.text,
                   ),
                   const SizedBox(height: 14),
                   Row(
@@ -355,7 +355,7 @@ class _FormularyProjectState extends State<FormularyProject> {
                         child: TextFormField(
                           controller: _mandateController,
                           decoration: const InputDecoration(
-                            labelText: 'Mandato (opcional)',
+                            labelText: 'Mandante (opcional)',
                             prefixIcon: Icon(Icons.gavel),
                             border: OutlineInputBorder(),
                           ),
@@ -379,7 +379,7 @@ class _FormularyProjectState extends State<FormularyProject> {
                   TextFormField(
                     controller: _externalController,
                     decoration: const InputDecoration(
-                      labelText: 'Información externa (opcional)',
+                      labelText: 'Contactos externos (opcional)',
                       prefixIcon: Icon(Icons.public),
                       border: OutlineInputBorder(),
                     ),
