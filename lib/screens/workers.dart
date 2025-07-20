@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -146,12 +147,32 @@ class _WorkerScreenState extends State<WorkerScreen> {
                                       size: 16, color: Colors.blueGrey),
                                   const SizedBox(width: 4),
                                   Expanded(
-                                    child: Text(
-                                      worker['mail'] ?? 'No disponible',
-                                      style: const TextStyle(fontSize: 15),
-                                      overflow: TextOverflow.ellipsis,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        final email = worker['mail'] ?? '';
+                                        if (email.isNotEmpty) {
+                                          Clipboard.setData(ClipboardData(text: email));
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Correo copiado: $email'),
+                                              duration: const Duration(seconds: 2),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      child: Text(
+                                        worker['mail'] ?? 'No disponible',
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          color: Colors.blue,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                   ),
+                                  const SizedBox(width: 4),
+                                  Icon(Icons.copy, size: 16, color: Colors.grey),
                                 ],
                               ),
                               const SizedBox(height: 2),
