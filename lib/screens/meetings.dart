@@ -16,6 +16,7 @@ class _MeetingScreenState extends State<MeetingScreen> {
   List<Map<String, dynamic>> virtualMeetings = [];
   bool isLoading = true;
   String _searchQuery = '';
+  int _selectedTab = 0; // 0 para virtuales, 1 para presenciales
 
   @override
   void initState() {
@@ -44,15 +45,22 @@ class _MeetingScreenState extends State<MeetingScreen> {
     }
   }
 
-  List<Map<String, dynamic>> filterMeetings(List<Map<String, dynamic>> meetings) {
+  List<Map<String, dynamic>> getFilteredMeetings(bool isPresencial) {
+    final meetings = isPresencial ? presencialMeetings : virtualMeetings;
+    
     if (_searchQuery.isEmpty) return meetings;
     final query = _searchQuery.trim().toLowerCase();
-    // Solo filtra si la palabra completa está en el título (no por letras sueltas)
+    
     return meetings.where((meet) {
       final title = (meet['title'] ?? meet['Title'] ?? '').toString().toLowerCase();
-      // Divide el título en palabras y compara con la query
-      final titleWords = title.split(RegExp(r'\s+'));
-      return titleWords.contains(query);
+      final details = (meet['details'] ?? '').toString().toLowerCase();
+      final address = (meet['address'] ?? '').toString().toLowerCase();
+      final url = (meet['url'] ?? '').toString().toLowerCase();
+      
+      return title.contains(query) || 
+             details.contains(query) || 
+             address.contains(query) || 
+             url.contains(query);
     }).toList();
   }
 
@@ -162,96 +170,101 @@ class _MeetingScreenState extends State<MeetingScreen> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SafeArea(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(
-                      left: isWide ? MediaQuery.of(context).size.width * 0.2 : 16,
-                      right: isWide ? MediaQuery.of(context).size.width * 0.2 : 16,
-                      top: 12,
-                      bottom: MediaQuery.of(context).viewInsets.bottom,
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(25),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.3),
-                            blurRadius: 6,
-                            offset: const Offset(0, 3),
+          : Column(
+              children: [
+                // Botones de navegación
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _selectedTab = 0;
+                            });
+                          },
+                          icon: const Icon(Icons.videocam),
+                          label: const Text('Virtuales'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _selectedTab == 0
+                                ? Colors.deepPurple
+                                : Colors.grey[300],
+                            foregroundColor:
+                                _selectedTab == 0 ? Colors.white : Colors.black54,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
-                        ],
-                      ),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Buscar por título',
-                          prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
                         ),
-                        onChanged: (value) {
-                          setState(() {
-                            _searchQuery = value;
-                          });
-                        },
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _selectedTab = 1;
+                            });
+                          },
+                          icon: const Icon(Icons.location_on),
+                          label: const Text('Presenciales'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _selectedTab == 1 
+                                ? Colors.blue 
+                                : Colors.grey[300],
+                            foregroundColor:
+                                _selectedTab == 1 ? Colors.white : Colors.black54,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  // El resto del body debe ocupar el espacio restante
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        // Usa ListView también en desktop para que las cards ocupen solo el espacio necesario
-                        return ListView(
-                          children: [
-                            const SizedBox(height: 16),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 4),
-                              child: Text(
-                                'Presenciales',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue[800],
-                                ),
-                              ),
-                            ),
-                            if (filterMeetings(presencialMeetings).isEmpty)
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 8),
-                                child: Text('No hay reuniones presenciales'),
-                              )
-                            else
-                              ...filterMeetings(presencialMeetings).map(meetingCard),
-                            const SizedBox(height: 18),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 4),
-                              child: Text(
-                                'Virtuales',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.deepPurple,
-                                ),
-                              ),
-                            ),
-                            if (filterMeetings(virtualMeetings).isEmpty)
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 8),
-                                child: Text('No hay reuniones virtuales'),
-                              )
-                            else
-                              ...filterMeetings(virtualMeetings).map(meetingCard),
-                            const SizedBox(height: 24),
-                          ],
-                        );
+                ),
+                
+                // Barra de búsqueda
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isWide ? MediaQuery.of(context).size.width * 0.2 : 16,
+                    vertical: 12,
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(25),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.3),
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Buscar reuniones',
+                        prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                        });
                       },
                     ),
                   ),
-                ],
-              ),
+                ),
+                
+                // Lista de reuniones
+                Expanded(
+                  child: _buildMeetingList(_selectedTab == 1), // true para presenciales, false para virtuales
+                ),
+              ],
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
@@ -269,6 +282,51 @@ class _MeetingScreenState extends State<MeetingScreen> {
         child: const Icon(Icons.add),
         tooltip: 'Agregar reunión',
       ),
+    );
+  }
+
+  Widget _buildMeetingList(bool isPresencial) {
+    final filteredMeetings = getFilteredMeetings(isPresencial);
+
+    if (filteredMeetings.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isPresencial ? Icons.location_on : Icons.videocam,
+              size: 64,
+              color: Colors.grey,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              isPresencial
+                  ? 'No hay reuniones presenciales'
+                  : 'No hay reuniones virtuales',
+              style: const TextStyle(fontSize: 18, color: Colors.grey),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Toca el botón + para agregar una nueva reunión',
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.only(
+        left: 12,
+        right: 12,
+        top: 12,
+        bottom: 80,
+      ),
+      itemCount: filteredMeetings.length,
+      itemBuilder: (context, index) {
+        final meet = filteredMeetings[index];
+        return meetingCard(meet);
+      },
     );
   }
 }
