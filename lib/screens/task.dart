@@ -15,6 +15,7 @@ class _TaskScreenState extends State<TaskScreen> {
   Map<String, List<Map<String, dynamic>>> groupedTasks = {};
   String _searchQuery = '';
   List<Map<String, dynamic>> _allTasks = [];
+  String _selectedCategory = '';
 
   @override
   void initState() {
@@ -66,10 +67,57 @@ class _TaskScreenState extends State<TaskScreen> {
     return filtered;
   }
 
+  List<String> getAvailableCategories() {
+    return groupedTasks.keys.toList()..sort();
+  }
+
+  List<Map<String, dynamic>> getFilteredTasksByCategory() {
+    if (_selectedCategory.isEmpty) return [];
+
+    List<Map<String, dynamic>> filtered = _allTasks.where((task) {
+      // Filtrar por categoría
+      final taskCategory = task['category'] ?? 'Sin categoría';
+      if (taskCategory != _selectedCategory) return false;
+
+      // Filtrar por búsqueda si hay query
+      if (_searchQuery.isNotEmpty) {
+        final title = (task['title'] ?? '').toString().toLowerCase();
+        final workers = (task['workers'] ?? '').toString().toLowerCase();
+        return title.contains(_searchQuery.toLowerCase()) ||
+            workers.contains(_searchQuery.toLowerCase());
+      }
+      return true;
+    }).toList();
+
+    return filtered;
+  }
+
+  Color _getCategoryColor(String category) {
+    // Generar color basado en el hash de la categoría
+    final hash = category.hashCode;
+    final colors = [
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.teal,
+      Colors.indigo,
+      Colors.red,
+      Colors.cyan,
+    ];
+    return colors[hash.abs() % colors.length];
+  }
+
   @override
   Widget build(BuildContext context) {
-    final filteredGroupedTasks = getFilteredTasks();
+    final categories = getAvailableCategories();
+    final filteredTasks = getFilteredTasksByCategory();
     final isWide = MediaQuery.of(context).size.width > 600;
+
+    // Seleccionar primera categoría si no hay ninguna seleccionada
+    if (_selectedCategory.isEmpty && categories.isNotEmpty) {
+      _selectedCategory = categories.first;
+    }
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -109,6 +157,46 @@ class _TaskScreenState extends State<TaskScreen> {
       ),
       body: Column(
         children: [
+          // Botones de navegación por categoría
+          if (categories.isNotEmpty)
+            Container(
+              height: 60,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: categories.length,
+                itemBuilder: (context, index) {
+                  final category = categories[index];
+                  final isSelected = _selectedCategory == category;
+                  final categoryColor = _getCategoryColor(category);
+
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _selectedCategory = category;
+                        });
+                      },
+                      icon: Icon(Icons.category),
+                      label: Text(category),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            isSelected ? categoryColor : Colors.grey[300],
+                        foregroundColor:
+                            isSelected ? Colors.white : Colors.black54,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
           Padding(
             padding: EdgeInsets.symmetric(
               horizontal: isWide ? MediaQuery.of(context).size.width * 0.2 : 16,
@@ -143,96 +231,203 @@ class _TaskScreenState extends State<TaskScreen> {
             ),
           ),
           Expanded(
-            child: filteredGroupedTasks.isEmpty
-                ? const Center(child: CircularProgressIndicator())
-                : LayoutBuilder(
-                    builder: (context, constraints) {
-                      // Cambia la lógica: en desktop/tablet también usa ListView como en móvil
-                      return ListView(
-                        padding: const EdgeInsets.only(
-                          left: 12,
-                          right: 12,
-                          top: 12,
-                          bottom: 80,
+            child: filteredTasks.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.category,
+                          size: 64,
+                          color: Colors.grey,
                         ),
-                        children: filteredGroupedTasks.entries.map((entry) {
-                          final category = entry.key;
-                          final tasks = entry.value;
+                        const SizedBox(height: 16),
+                        Text(
+                          _selectedCategory.isEmpty
+                              ? 'No hay categorías disponibles'
+                              : 'No hay tareas en $_selectedCategory',
+                          style:
+                              const TextStyle(fontSize: 18, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.only(
+                      left: 12,
+                      right: 12,
+                      top: 12,
+                      bottom: 80,
+                    ),
+                    itemCount: filteredTasks.length,
+                    itemBuilder: (context, index) {
+                      final task = filteredTasks[index];
+                      final categoryColor =
+                          _getCategoryColor(_selectedCategory);
+                      final stateColor = _getTaskStateColor(task['state']);
 
-                          return ExpansionTile(
-                            title: Text(
-                              category,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blueAccent,
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: GestureDetector(
+                          onTap: () async {
+                            final changed = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => TaskDetailScreen(task: task),
+                              ),
+                            );
+                            if (changed == true) {
+                              fetchTasks();
+                            }
+                          },
+                          child: Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(
+                                color: categoryColor.withOpacity(0.6),
+                                width: 2,
                               ),
                             ),
-                            children: tasks.map((task) {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12.0, vertical: 6),
-                                child: GestureDetector(
-                                  onTap: () async {
-                                    final changed = await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            TaskDetailScreen(task: task),
-                                      ),
-                                    );
-                                    if (changed == true) {
-                                      fetchTasks();
-                                    }
-                                  },
-                                  child: Card(
-                                    color: task['state'] == 'completada'
-                                        ? Colors.green[100]
-                                        : task['state'] == 'en progreso'
-                                            ? Colors.yellow[100]
-                                            : task['state'] == 'pendiente'
-                                                ? Colors.red[100]
-                                                : Colors.white,
-                                    elevation: 3,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(14)),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(14.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                color:
+                                    _getTaskStateBackgroundColor(task['state']),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                categoryColor.withOpacity(0.1),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          child: Icon(
+                                            _getTaskStateIcon(task['state']),
+                                            color: stateColor,
+                                            size: 20,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
-                                              const Icon(Icons.assignment,
-                                                  color: Colors.blue),
-                                              const SizedBox(width: 10),
-                                              Expanded(
-                                                child: Text(task['title'],
-                                                    style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 16,
-                                                    )),
+                                              Text(
+                                                task['title'] ?? 'Sin título',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: stateColor
+                                                      .withOpacity(0.2),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                child: Text(
+                                                  task['state'] ?? 'Sin estado',
+                                                  style: TextStyle(
+                                                    color: stateColor,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
                                               ),
                                             ],
                                           ),
-                                          const SizedBox(height: 8),
-                                          Text("Estado: ${task['state']}"),
-                                          Text(
-                                              "Fecha: ${task['date_finish'].toString().split('T')[0]}"),
-                                          Text(
-                                              "Trabajadores: ${task['workers']}"),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
+                                    const SizedBox(height: 16),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: _buildInfoChip(
+                                            Icons.calendar_today,
+                                            'Fecha límite',
+                                            _formatDate(task['date_finish']),
+                                            Colors.orange,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: _buildInfoChip(
+                                            Icons.people,
+                                            'Trabajadores',
+                                            task['workers'] ?? 'No asignados',
+                                            Colors.purple,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    if (task['description'] != null &&
+                                        task['description']
+                                            .toString()
+                                            .isNotEmpty) ...[
+                                      const SizedBox(height: 12),
+                                      Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.7),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Row(
+                                              children: [
+                                                Icon(Icons.description,
+                                                    size: 16,
+                                                    color: Colors.grey),
+                                                SizedBox(width: 4),
+                                                Text(
+                                                  'Descripción',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 12,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              task['description'],
+                                              style:
+                                                  const TextStyle(fontSize: 13),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
-                              );
-                            }).toList(),
-                          );
-                        }).toList(),
+                              ),
+                            ),
+                          ),
+                        ),
                       );
                     },
                   ),
@@ -251,6 +446,96 @@ class _TaskScreenState extends State<TaskScreen> {
         },
         child: const Icon(Icons.add),
         tooltip: 'Agregar tarea',
+      ),
+    );
+  }
+
+  Color _getTaskStateColor(String? state) {
+    switch (state?.toLowerCase()) {
+      case 'pendiente':
+        return Colors.orange;
+      case 'en progreso':
+        return Colors.blue;
+      case 'completada':
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getTaskStateIcon(String? state) {
+    switch (state?.toLowerCase()) {
+      case 'pendiente':
+        return Icons.schedule;
+      case 'en progreso':
+        return Icons.play_circle;
+      case 'completada':
+        return Icons.check_circle;
+      default:
+        return Icons.help;
+    }
+  }
+
+  Color _getTaskStateBackgroundColor(String? state) {
+    switch (state?.toLowerCase()) {
+      case 'pendiente':
+        return Colors.orange.withOpacity(0.1);
+      case 'en progreso':
+        return Colors.blue.withOpacity(0.1);
+      case 'completada':
+        return Colors.green.withOpacity(0.1);
+      default:
+        return Colors.grey.withOpacity(0.1);
+    }
+  }
+
+  String _formatDate(String? dateString) {
+    if (dateString == null || dateString.isEmpty) return 'No definida';
+
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}';
+    } catch (e) {
+      return dateString.split('T')[0];
+    }
+  }
+
+  Widget _buildInfoChip(
+      IconData icon, String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 13),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }

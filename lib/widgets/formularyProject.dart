@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:jcrg_phone/widgets/contact_selector_dialog.dart';
+import 'package:jcrg_phone/widgets/worker_selector_dialog.dart';
+// Ensure that 'contact_selector_dialog.dart' and 'worker_selector_dialog.dart' exist in 'lib/widgets' and contain:
+// class ContactSelectorDialog extends StatelessWidget { ... }
+// class WorkerSelectorDialog extends StatelessWidget { ... }
 
 class FormularyProject extends StatefulWidget {
   final bool isEdit;
@@ -30,11 +35,14 @@ class _FormularyProjectState extends State<FormularyProject> {
   List<String> _workersList = [];
   String? _selectedManager;
   List<String> _selectedWorkers = [];
+  List<Map<String, dynamic>> _contactsList = [];
+  List<String> _selectedContacts = [];
 
   @override
   void initState() {
     super.initState();
     fetchWorkers();
+    fetchContacts();
     if (widget.isEdit && widget.initialData != null) {
       _populateInitialData();
     }
@@ -58,6 +66,35 @@ class _FormularyProjectState extends State<FormularyProject> {
     // Convertir string de trabajadores a lista
     if (data['workers'] != null && data['workers'].toString().isNotEmpty) {
       _selectedWorkers = data['workers'].toString().split(', ');
+    }
+
+    // Convertir string de contactos externos a lista
+    if (data['external'] != null && data['external'].toString().isNotEmpty) {
+      _selectedContacts = data['external'].toString().split(', ');
+    }
+  }
+
+  Future<void> fetchContacts() async {
+    try {
+      final response = await http
+          .get(Uri.parse('https://backend-jcrgapp.onrender.com/user/Contacts'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        List<dynamic> usuarios = data['usuarios'];
+        usuarios.sort((a, b) => (a['Name'] ?? '')
+            .toString()
+            .toLowerCase()
+            .compareTo((b['Name'] ?? '').toString().toLowerCase()));
+        if (mounted) {
+          setState(() {
+            _contactsList = List<Map<String, dynamic>>.from(usuarios);
+          });
+        }
+      } else {
+        throw Exception('Error al cargar los contactos');
+      }
+    } catch (e) {
+      print('Error: $e');
     }
   }
 
@@ -128,9 +165,8 @@ class _FormularyProjectState extends State<FormularyProject> {
             : null,
         "mandate":
             _mandateController.text.isNotEmpty ? _mandateController.text : null,
-        "external": _externalController.text.isNotEmpty
-            ? _externalController.text
-            : null,
+        "external":
+            _selectedContacts.isNotEmpty ? _selectedContacts.join(', ') : null,
         "contracts": _contractsController.text.isNotEmpty
             ? int.tryParse(_contractsController.text)
             : null,
@@ -216,7 +252,40 @@ class _FormularyProjectState extends State<FormularyProject> {
     setState(() {
       _selectedManager = null;
       _selectedWorkers = [];
+      _selectedContacts = [];
     });
+  }
+
+  void _showContactsSelector() async {
+    final selectedContacts = await showDialog<List<String>>(
+      context: context,
+      builder: (context) => ContactSelectorDialog(
+        contacts: _contactsList,
+        selectedContacts: List.from(_selectedContacts),
+      ),
+    );
+
+    if (selectedContacts != null) {
+      setState(() {
+        _selectedContacts = selectedContacts;
+      });
+    }
+  }
+
+  void _showWorkersSelector() async {
+    final selectedWorkers = await showDialog<List<String>>(
+      context: context,
+      builder: (context) => WorkerSelectorDialog(
+        workers: _workersList,
+        selectedWorkers: List.from(_selectedWorkers),
+      ),
+    );
+
+    if (selectedWorkers != null) {
+      setState(() {
+        _selectedWorkers = selectedWorkers;
+      });
+    }
   }
 
   @override
@@ -376,14 +445,63 @@ class _FormularyProjectState extends State<FormularyProject> {
                     ],
                   ),
                   const SizedBox(height: 14),
-                  TextFormField(
-                    controller: _externalController,
-                    decoration: const InputDecoration(
-                      labelText: 'Contactos externos (opcional)',
-                      prefixIcon: Icon(Icons.public),
-                      border: OutlineInputBorder(),
+                  // Selector de contactos externos
+                  GestureDetector(
+                    onTap: _showContactsSelector,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.public, color: Colors.grey),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Contactos externos (opcional)',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  if (_selectedContacts.isNotEmpty)
+                                    Text(
+                                      '${_selectedContacts.length} contacto${_selectedContacts.length > 1 ? 's' : ''} seleccionado${_selectedContacts.length > 1 ? 's' : ''}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.arrow_forward_ios,
+                                color: Colors.grey),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
+                  if (_selectedContacts.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6.0,
+                      children: _selectedContacts.map((contact) {
+                        return Chip(
+                          label: Text(contact),
+                          deleteIcon: const Icon(Icons.close, size: 18),
+                          onDeleted: () {
+                            setState(() {
+                              _selectedContacts.remove(contact);
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ],
                   const SizedBox(height: 14),
                   TextFormField(
                     controller: _observationsController,
@@ -395,51 +513,44 @@ class _FormularyProjectState extends State<FormularyProject> {
                     maxLines: 3,
                   ),
                   const SizedBox(height: 14),
-                  // Widget para selección múltiple de trabajadores
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.all(12.0),
-                          child: Row(
-                            children: [
-                              Icon(Icons.people, color: Colors.grey),
-                              SizedBox(width: 12),
-                              Text('Trabajadores',
-                                  style: TextStyle(fontSize: 16)),
-                            ],
-                          ),
+                  // Selector de trabajadores
+                  GestureDetector(
+                    onTap: _showWorkersSelector,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.people, color: Colors.grey),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Trabajadores',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  if (_selectedWorkers.isNotEmpty)
+                                    Text(
+                                      '${_selectedWorkers.length} trabajador${_selectedWorkers.length > 1 ? 'es' : ''} seleccionado${_selectedWorkers.length > 1 ? 's' : ''}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.arrow_forward_ios,
+                                color: Colors.grey),
+                          ],
                         ),
-                        const Divider(height: 1),
-                        Container(
-                          constraints: const BoxConstraints(maxHeight: 150),
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: _workersList.length,
-                            itemBuilder: (context, index) {
-                              final worker = _workersList[index];
-                              return CheckboxListTile(
-                                title: Text(worker),
-                                value: _selectedWorkers.contains(worker),
-                                onChanged: (bool? value) {
-                                  setState(() {
-                                    if (value == true) {
-                                      _selectedWorkers.add(worker);
-                                    } else {
-                                      _selectedWorkers.remove(worker);
-                                    }
-                                  });
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                   if (_selectedWorkers.isNotEmpty) ...[
