@@ -58,108 +58,389 @@ class _FormularyTicketState extends State<FormularyTicket> {
     }
   }
 
+  Color _getPriorityColor(String priority) {
+    switch (priority.toLowerCase()) {
+      case 'alta':
+        return Colors.red;
+      case 'media':
+        return Colors.orange;
+      case 'baja':
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getPriorityIcon(String priority) {
+    switch (priority.toLowerCase()) {
+      case 'alta':
+        return Icons.priority_high;
+      case 'media':
+        return Icons.remove;
+      case 'baja':
+        return Icons.low_priority;
+      default:
+        return Icons.help;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width > 600;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Crear Ticket')),
-      body: Center(
-        child: Card(
-          elevation: 8,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Form(
-              key: _formKey,
-              child: ListView(
-                shrinkWrap: true,
-                children: [
-                  const Center(
-                    child: CircleAvatar(
-                      radius: 32,
-                      backgroundColor: Colors.deepPurple,
-                      child: Icon(Icons.confirmation_number,
-                          size: 40, color: Colors.white),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  TextFormField(
-                    controller: titleController,
-                    decoration: const InputDecoration(
-                      labelText: 'Título',
-                      prefixIcon: Icon(Icons.title),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) => value == null || value.isEmpty
-                        ? 'Ingrese un título'
-                        : null,
-                  ),
-                  const SizedBox(height: 14),
-                  TextFormField(
-                    controller: descriptionController,
-                    decoration: const InputDecoration(
-                      labelText: 'Descripción',
-                      prefixIcon: Icon(Icons.description),
-                      border: OutlineInputBorder(),
-                    ),
-                    maxLines: 3,
-                    validator: (value) => value == null || value.isEmpty
-                        ? 'Ingrese una descripción'
-                        : null,
-                  ),
-                  const SizedBox(height: 14),
-                  DropdownButtonFormField<String>(
-                    value: priority,
-                    decoration: const InputDecoration(
-                      labelText: 'Prioridad',
-                      prefixIcon: Icon(Icons.priority_high),
-                      border: OutlineInputBorder(),
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: 'Baja', child: Text('Baja')),
-                      DropdownMenuItem(value: 'Media', child: Text('Media')),
-                      DropdownMenuItem(value: 'Alta', child: Text('Alta')),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) setState(() => priority = value);
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : ElevatedButton.icon(
-                          onPressed: () async {
-                            if (_formKey.currentState!.validate()) {
-                              setState(() => isLoading = true);
-                              await createTicket(
-                                titleController.text,
-                                descriptionController.text,
-                                priority,
-                              );
-                              setState(() => isLoading = false);
-                            }
-                          },
-                          icon: const Icon(Icons.save, color: Colors.white),
-                          label: const Text(
-                            'Crear Ticket',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurple,
-                            minimumSize: const Size.fromHeight(48),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(isWide ? 70 : 80),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(20.0),
+            bottomRight: Radius.circular(20.0),
+          ),
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color.fromARGB(255, 255, 33, 33),
+                  Color.fromARGB(255, 255, 100, 100),
+                  Color.fromARGB(255, 255, 180, 180),
                 ],
               ),
             ),
+            child: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              title: const Text(
+                'Crear Ticket de Soporte',
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+              centerTitle: true,
+              foregroundColor: Colors.white,
+            ),
           ),
         ),
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Center(
+            child: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: isWide ? 600 : double.infinity,
+                ),
+                child: Card(
+                  elevation: 8,
+                  margin: EdgeInsets.symmetric(
+                    horizontal: isWide ? 40 : 16, 
+                    vertical: 24
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white,
+                          Colors.red.shade50.withOpacity(0.3),
+                        ],
+                      ),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.all(isWide ? 40 : 24),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Header con icono y título
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade100,
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                              child: Icon(
+                                Icons.support_agent,
+                                size: 48,
+                                color: Colors.red.shade700,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              'Reportar Problema',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red.shade700,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Describe tu problema para que nuestro equipo pueda ayudarte',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey.shade600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 32),
+
+                            // Campo Título
+                            Container(
+                              decoration: BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: TextFormField(
+                                controller: titleController,
+                                decoration: InputDecoration(
+                                  labelText: 'Título del problema',
+                                  hintText: 'Ej: No puedo acceder al sistema',
+                                  prefixIcon: Icon(Icons.title, color: Colors.red.shade600),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                    borderSide: BorderSide(color: Colors.grey.shade300),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                    borderSide: BorderSide(color: Colors.red.shade400, width: 2),
+                                  ),
+                                  labelStyle: TextStyle(color: Colors.grey.shade700),
+                                ),
+                                validator: (value) => value == null || value.isEmpty
+                                    ? 'Por favor ingrese un título'
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Campo Descripción
+                            Container(
+                              decoration: BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: TextFormField(
+                                controller: descriptionController,
+                                decoration: InputDecoration(
+                                  labelText: 'Descripción detallada',
+                                  hintText: 'Describe el problema con el mayor detalle posible...',
+                                  prefixIcon: Icon(Icons.description, color: Colors.red.shade600),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                    borderSide: BorderSide(color: Colors.grey.shade300),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                    borderSide: BorderSide(color: Colors.red.shade400, width: 2),
+                                  ),
+                                  labelStyle: TextStyle(color: Colors.grey.shade700),
+                                  alignLabelWithHint: true,
+                                ),
+                                maxLines: 4,
+                                minLines: 3,
+                                validator: (value) => value == null || value.isEmpty
+                                    ? 'Por favor describe el problema'
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Campo Prioridad con diseño mejorado
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(15),
+                                border: Border.all(color: Colors.grey.shade300),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                child: DropdownButtonFormField<String>(
+                                  value: priority,
+                                  decoration: InputDecoration(
+                                    labelText: 'Nivel de prioridad',
+                                    prefixIcon: Icon(
+                                      _getPriorityIcon(priority),
+                                      color: _getPriorityColor(priority),
+                                    ),
+                                    border: InputBorder.none,
+                                    labelStyle: TextStyle(color: Colors.grey.shade700),
+                                  ),
+                                  items: [
+                                    DropdownMenuItem(
+                                      value: 'Baja',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.low_priority, color: Colors.green, size: 20),
+                                          const SizedBox(width: 8),
+                                          const Text('Baja - No es urgente'),
+                                        ],
+                                      ),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'Media',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.remove, color: Colors.orange, size: 20),
+                                          const SizedBox(width: 8),
+                                          const Text('Media - Moderadamente urgente'),
+                                        ],
+                                      ),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'Alta',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.priority_high, color: Colors.red, size: 20),
+                                          const SizedBox(width: 8),
+                                          const Text('Alta - Muy urgente'),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                  onChanged: (value) {
+                                    if (value != null) setState(() => priority = value);
+                                  },
+                                  dropdownColor: Colors.white,
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+
+                            // Información adicional
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.blue.shade200),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.info, color: Colors.blue.shade600),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      'Nuestro equipo de soporte revisará tu ticket y te contactará pronto.',
+                                      style: TextStyle(
+                                        color: Colors.blue.shade700,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+
+                            // Botón de envío
+                            isLoading
+                                ? Container(
+                                    height: 56,
+                                    child: const Center(
+                                      child: CircularProgressIndicator(
+                                        color: Colors.red,
+                                        strokeWidth: 3,
+                                      ),
+                                    ),
+                                  )
+                                : Container(
+                                    width: double.infinity,
+                                    height: 56,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.red.shade600,
+                                          Colors.red.shade400,
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(15),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.red.withOpacity(0.3),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ElevatedButton.icon(
+                                      onPressed: () async {
+                                        if (_formKey.currentState!.validate()) {
+                                          setState(() => isLoading = true);
+                                          await createTicket(
+                                            titleController.text,
+                                            descriptionController.text,
+                                            priority,
+                                          );
+                                          if (mounted) {
+                                            setState(() => isLoading = false);
+                                          }
+                                        }
+                                      },
+                                      icon: const Icon(Icons.send, color: Colors.white),
+                                      label: const Text(
+                                        'Enviar Ticket de Soporte',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        shadowColor: Colors.transparent,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(15),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
