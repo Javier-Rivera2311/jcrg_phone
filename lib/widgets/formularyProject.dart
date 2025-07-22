@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:jcrg_phone/widgets/contact_selector_dialog.dart';
-// Ensure that 'contact_selector_dialog.dart' exists in 'lib/widgets' and contains:
+import 'package:jcrg_phone/widgets/worker_selector_dialog.dart';
+// Ensure that 'contact_selector_dialog.dart' and 'worker_selector_dialog.dart' exist in 'lib/widgets' and contain:
 // class ContactSelectorDialog extends StatelessWidget { ... }
+// class WorkerSelectorDialog extends StatelessWidget { ... }
 
 class FormularyProject extends StatefulWidget {
   final bool isEdit;
@@ -270,6 +272,22 @@ class _FormularyProjectState extends State<FormularyProject> {
     }
   }
 
+  void _showWorkersSelector() async {
+    final selectedWorkers = await showDialog<List<String>>(
+      context: context,
+      builder: (context) => WorkerSelectorDialog(
+        workers: _workersList,
+        selectedWorkers: List.from(_selectedWorkers),
+      ),
+    );
+
+    if (selectedWorkers != null) {
+      setState(() {
+        _selectedWorkers = selectedWorkers;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -495,51 +513,44 @@ class _FormularyProjectState extends State<FormularyProject> {
                     maxLines: 3,
                   ),
                   const SizedBox(height: 14),
-                  // Widget para selección múltiple de trabajadores
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.all(12.0),
-                          child: Row(
-                            children: [
-                              Icon(Icons.people, color: Colors.grey),
-                              SizedBox(width: 12),
-                              Text('Trabajadores',
-                                  style: TextStyle(fontSize: 16)),
-                            ],
-                          ),
+                  // Selector de trabajadores
+                  GestureDetector(
+                    onTap: _showWorkersSelector,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.people, color: Colors.grey),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Trabajadores',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  if (_selectedWorkers.isNotEmpty)
+                                    Text(
+                                      '${_selectedWorkers.length} trabajador${_selectedWorkers.length > 1 ? 'es' : ''} seleccionado${_selectedWorkers.length > 1 ? 's' : ''}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.arrow_forward_ios,
+                                color: Colors.grey),
+                          ],
                         ),
-                        const Divider(height: 1),
-                        Container(
-                          constraints: const BoxConstraints(maxHeight: 150),
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: _workersList.length,
-                            itemBuilder: (context, index) {
-                              final worker = _workersList[index];
-                              return CheckboxListTile(
-                                title: Text(worker),
-                                value: _selectedWorkers.contains(worker),
-                                onChanged: (bool? value) {
-                                  setState(() {
-                                    if (value == true) {
-                                      _selectedWorkers.add(worker);
-                                    } else {
-                                      _selectedWorkers.remove(worker);
-                                    }
-                                  });
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                   if (_selectedWorkers.isNotEmpty) ...[
