@@ -34,9 +34,18 @@ class _ContactSelectorDialogState extends State<ContactSelectorDialog> {
         final name = contact['Name']?.toLowerCase() ?? '';
         final email = contact['email']?.toLowerCase() ?? '';
         final organization = contact['organization']?.toLowerCase() ?? '';
+        final commune = contact['Commune']?.toLowerCase() ?? '';
+        final job = contact['job']?.toLowerCase() ?? '';
+        final phone = contact['Phone']?.toLowerCase() ?? '';
+        final project = contact['project']?.toLowerCase() ?? '';
+
         return name.contains(query) ||
             email.contains(query) ||
-            organization.contains(query);
+            organization.contains(query) ||
+            commune.contains(query) ||
+            job.contains(query) ||
+            phone.contains(query) ||
+            project.contains(query);
       }).toList();
     });
   }
@@ -113,15 +122,65 @@ class _ContactSelectorDialogState extends State<ContactSelectorDialog> {
                         style: const TextStyle(color: Colors.white),
                       ),
                     ),
-                    title: Text(name),
+                    title: Text(
+                      name,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (contact['job'] != null)
+                          Text(
+                            contact['job'],
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         if (contact['organization'] != null)
-                          Text(contact['organization']),
-                        if (contact['email'] != null) Text(contact['email']),
+                          Text(
+                            contact['organization'],
+                            style: const TextStyle(
+                              color: Colors.green,
+                              fontSize: 13,
+                            ),
+                          ),
+                        if (contact['Commune'] != null)
+                          Row(
+                            children: [
+                              const Icon(Icons.location_on,
+                                  size: 14, color: Colors.grey),
+                              const SizedBox(width: 2),
+                              Text(
+                                contact['Commune'],
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        if (contact['email'] != null)
+                          Row(
+                            children: [
+                              const Icon(Icons.email,
+                                  size: 14, color: Colors.grey),
+                              const SizedBox(width: 2),
+                              Expanded(
+                                child: Text(
+                                  contact['email'],
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                       ],
                     ),
+                    isThreeLine: true,
                     trailing: Checkbox(
                       value: isSelected,
                       onChanged: (value) {
