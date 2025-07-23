@@ -3,9 +3,12 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:jcrg_phone/widgets/contact_selector_dialog.dart';
 import 'package:jcrg_phone/widgets/worker_selector_dialog.dart';
-// Ensure that 'contact_selector_dialog.dart' and 'worker_selector_dialog.dart' exist in 'lib/widgets' and contain:
+import 'package:jcrg_phone/widgets/manager_selector_dialog.dart';
+
+// Ensure that 'contact_selector_dialog.dart', 'worker_selector_dialog.dart' and 'manager_selector_dialog.dart' exist in 'lib/widgets' and contain:
 // class ContactSelectorDialog extends StatelessWidget { ... }
 // class WorkerSelectorDialog extends StatelessWidget { ... }
+// class ManagerSelectorDialog extends StatelessWidget { ... }
 
 class FormularyProject extends StatefulWidget {
   final bool isEdit;
@@ -288,6 +291,22 @@ class _FormularyProjectState extends State<FormularyProject> {
     }
   }
 
+  void _showManagerSelector() async {
+    final selectedManager = await showDialog<String>(
+      context: context,
+      builder: (context) => ManagerSelectorDialog(
+        workers: _workersList,
+        selectedManager: _selectedManager,
+      ),
+    );
+
+    if (selectedManager != null) {
+      setState(() {
+        _selectedManager = selectedManager;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -513,6 +532,59 @@ class _FormularyProjectState extends State<FormularyProject> {
                     maxLines: 3,
                   ),
                   const SizedBox(height: 14),
+                  // Selector de encargado de la oficina
+                  GestureDetector(
+                    onTap: _showManagerSelector,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.person, color: Colors.grey),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Encargado en la oficina',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  if (_selectedManager != null)
+                                    Text(
+                                      _selectedManager!,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.arrow_forward_ios,
+                                color: Colors.grey),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (_selectedManager != null) ...[
+                    const SizedBox(height: 8),
+                    Chip(
+                      label: Text(_selectedManager!),
+                      deleteIcon: const Icon(Icons.close, size: 18),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedManager = null;
+                        });
+                      },
+                    ),
+                  ],
+                  const SizedBox(height: 14),
                   // Selector de trabajadores
                   GestureDetector(
                     onTap: _showWorkersSelector,
@@ -578,25 +650,6 @@ class _FormularyProjectState extends State<FormularyProject> {
                       prefixIcon: Icon(Icons.folder_open),
                       border: OutlineInputBorder(),
                     ),
-                  ),
-                  const SizedBox(height: 14),
-                  DropdownButtonFormField<String>(
-                    value: _selectedManager,
-                    decoration: const InputDecoration(
-                      labelText: 'Encargado',
-                      prefixIcon: Icon(Icons.person),
-                      border: OutlineInputBorder(),
-                    ),
-                    items: _workersList.map((worker) {
-                      return DropdownMenuItem<String>(
-                        value: worker,
-                        child: Text(worker),
-                      );
-                    }).toList(),
-                    onChanged: (value) =>
-                        setState(() => _selectedManager = value),
-                    validator: (value) =>
-                        value == null ? 'Seleccione un encargado' : null,
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
