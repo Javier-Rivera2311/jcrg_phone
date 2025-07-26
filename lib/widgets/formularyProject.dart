@@ -60,7 +60,7 @@ class _FormularyProjectState extends State<FormularyProject> {
     _dateDeliveriesController.text = data['date_deliveries'] ?? '';
     _deliveriesController.text = data['deliveries']?.toString() ?? '';
     _observationsController.text = data['observations'] ?? '';
-    _localPathController.text = data['local_path'] ?? '';
+    _localPathController.text = data['path'] ?? '';
     _mandateController.text = data['mandate']?.toString() ?? '';
     _externalController.text = data['external']?.toString() ?? '';
     _contractsController.text = data['contracts']?.toString() ?? '';
@@ -151,29 +151,33 @@ class _FormularyProjectState extends State<FormularyProject> {
       final body = {
         "Name_project": _nameProjectController.text,
         "city": _cityController.text,
-        "init_date": _initDateController.text,
-        "end_date": _endDateController.text,
+        "init_date": _initDateController.text.isNotEmpty
+            ? _initDateController.text
+            : null,
+        "end_date":
+            _endDateController.text.isNotEmpty ? _endDateController.text : null,
         "date_deliveries": _dateDeliveriesController.text.isNotEmpty
             ? _dateDeliveriesController.text
             : null,
         "deliveries": _deliveriesController.text.isNotEmpty
-            ? int.tryParse(_deliveriesController.text)
+            ? _deliveriesController.text
             : null,
         "observations": _observationsController.text.isNotEmpty
             ? _observationsController.text
             : null,
-        "workers": _selectedWorkers.join(', '),
-        "local_path": _localPathController.text.isNotEmpty
-            ? _localPathController.text
-            : null,
+        "in_charge": _selectedManager,
+        "workers":
+            _selectedWorkers.isNotEmpty ? _selectedWorkers.join(', ') : null,
         "mandate":
             _mandateController.text.isNotEmpty ? _mandateController.text : null,
         "external":
             _selectedContacts.isNotEmpty ? _selectedContacts.join(', ') : null,
+        "local_path": _localPathController.text.isNotEmpty
+            ? _localPathController.text
+            : null,
         "contracts": _contractsController.text.isNotEmpty
             ? int.tryParse(_contractsController.text)
             : null,
-        "in_charge": _selectedManager,
       };
 
       if (widget.isEdit && widget.initialData != null) {
