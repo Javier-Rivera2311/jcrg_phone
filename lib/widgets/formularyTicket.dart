@@ -31,7 +31,7 @@ class _FormularyTicketState extends State<FormularyTicket> {
     final token = prefs.getString('token');
 
     final response = await http.post(
-      Uri.parse('https://backend-jcrgappp.onrender.com/user/createTicket'),
+      Uri.parse('https://backend-jcrgapp.onrender.com/user/createTicket'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -40,6 +40,8 @@ class _FormularyTicketState extends State<FormularyTicket> {
         'title': title,
         'description': description,
         'priority': priority,
+        'worker_id': widget.workerId,
+        'department_id': widget.departmentId,
       }),
     );
 
