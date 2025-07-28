@@ -16,7 +16,6 @@ class ProjectScreen extends StatefulWidget {
 class _ProjectScreenState extends State<ProjectScreen> {
   Map<String, List<Map<String, dynamic>>> groupedProjects = {};
   String _searchQuery = '';
-  List<Map<String, dynamic>> _allProjects = [];
   int _selectedTab = 0; // 0 para activos, 1 para completados
 
   @override
@@ -49,7 +48,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
       if (mounted) {
         setState(() {
           groupedProjects = grouped;
-          _allProjects = List<Map<String, dynamic>>.from(projects);
         });
       }
     }
@@ -450,9 +448,9 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                     ],
                                   ),
                                 ),
-                                if (project['path'] != null)
+                                if (project['local_path'] != null || project['path'] != null)
                                   OpenProject(
-                                    windowsPath: project['path'],
+                                    windowsPath: project['local_path'] ?? project['path'],
                                     tooltip: 'Abrir carpeta del proyecto',
                                   ),
                               ],
@@ -517,8 +515,8 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                   Expanded(
                                     child: _buildInfoChip(
                                       Icons.inventory,
-                                      'Entregas',
-                                      project['deliveries']?.toString() ?? '0',
+                                      'URL Entregas',
+                                      project['deliveries']?.toString() ?? 'No definida',
                                       Colors.indigo,
                                     ),
                                   ),
