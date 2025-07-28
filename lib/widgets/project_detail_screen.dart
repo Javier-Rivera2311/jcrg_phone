@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import '../widgets/openProject.dart';
 import '../widgets/formularyProject.dart'; // Agregar esta importación
 
@@ -9,7 +10,7 @@ class ProjectDetailScreen extends StatelessWidget {
   const ProjectDetailScreen({super.key, required this.project});
 
   String _formatDate(String? dateString) {
-    if (dateString == null || dateString.isEmpty) return 'No definida';
+    if (dateString == null || dateString.isEmpty) return 'Sin registro';
 
     try {
       final date = DateTime.parse(dateString);
@@ -17,6 +18,48 @@ class ProjectDetailScreen extends StatelessWidget {
     } catch (e) {
       return dateString.split('T')[0]; // Fallback
     }
+  }
+
+  bool _isUrl(String? text) {
+    if (text == null || text.isEmpty) return false;
+    return text.startsWith('http://') || text.startsWith('https://') || text.startsWith('www.');
+  }
+
+  bool _isFilePath(String? text) {
+    if (text == null || text.isEmpty) return false;
+    return text.startsWith(r'\\') || text.contains(':') || text.contains('/') || text.contains('\\');
+  }
+
+  Future<void> _openUrl(String url) async {
+    String finalUrl = url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      finalUrl = 'https://$url';
+    }
+    
+    final Uri uri = Uri.parse(finalUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Widget? _buildActionWidget(String? value) {
+    if (value == null || value.isEmpty) return null;
+    
+    if (_isUrl(value)) {
+      return IconButton(
+        icon: const Icon(Icons.open_in_browser, size: 20),
+        onPressed: () => _openUrl(value),
+        tooltip: 'Abrir URL',
+      );
+    } else if (_isFilePath(value)) {
+      return OpenProject(
+        windowsPath: value,
+        tooltip: 'Abrir archivo/carpeta',
+        icon: Icons.open_in_new,
+      );
+    }
+    
+    return null;
   }
 
   @override
@@ -115,11 +158,11 @@ class ProjectDetailScreen extends StatelessWidget {
                   Colors.blue,
                   [
                     _buildInfoRow(Icons.location_city, 'Ciudad',
-                        project['city'] ?? 'No especificada'),
+                        project['city'] ?? 'Sin registro'),
                     _buildInfoRow(Icons.person, 'Encargado',
-                        project['in_charge'] ?? 'No asignado'),
+                        project['in_charge'] ?? 'Sin registro'),
                     _buildInfoRow(Icons.people, 'Trabajadores',
-                        project['workers'] ?? 'No asignados'),
+                        project['workers'] ?? 'Sin registro'),
                   ],
                 ),
 
@@ -131,92 +174,86 @@ class ProjectDetailScreen extends StatelessWidget {
                   Icons.schedule,
                   Colors.orange,
                   [
-                    if (project['init_date'] != null)
-                      _buildInfoRow(Icons.calendar_today_outlined,
-                          'Fecha de inicio', _formatDate(project['init_date'])),
+                    _buildInfoRow(Icons.calendar_today_outlined,
+                        'Fecha de inicio', _formatDate(project['init_date'])),
                     _buildInfoRow(Icons.calendar_today, 'Fecha de finalización',
                         _formatDate(project['end_date'])),
-                    if (project['date_deliveries'] != null)
-                      _buildInfoRow(Icons.local_shipping, 'Fecha de entregas',
-                          _formatDate(project['date_deliveries'])),
+                    _buildInfoRow(Icons.local_shipping, 'Fecha de entregas',
+                        _formatDate(project['date_deliveries'])),
                   ],
                 ),
 
                 const SizedBox(height: 16),
 
                 // Detalles del Proyecto
-                if (project['deliveries'] != null ||
-                    project['mandate'] != null ||
-                    project['external'] != null ||
-                    project['contracts'] != null)
-                  _buildInfoSection(
-                    'Detalles del Proyecto',
-                    Icons.assignment,
-                    Colors.purple,
-                    [
-                      if (project['deliveries'] != null)
-                        _buildInfoRow(Icons.inventory, 'Fechas de entregas',
-                            project['deliveries'].toString()),
-                      if (project['mandate'] != null &&
-                          project['mandate'].toString().isNotEmpty)
-                        _buildInfoRow(Icons.gavel, 'Mandante',
-                            project['mandate'].toString()),
-                      if (project['external'] != null &&
-                          project['external'].toString().isNotEmpty)
-                        _buildInfoRow(Icons.public, 'Contactos externos',
-                            project['external'].toString()),
-                      if (project['contracts'] != null)
-                        _buildInfoRow(Icons.description, 'Contratos',
-                            project['contracts'].toString()),
-                    ],
-                  ),
+                _buildInfoSection(
+                  'Detalles del Proyecto',
+                  Icons.assignment,
+                  Colors.purple,
+                  [
+                    _buildInfoRowWithAction(
+                      Icons.inventory, 
+                      'URL de entregas',
+                      project['deliveries']?.toString() ?? 'Sin registro',
+                      _buildActionWidget(project['deliveries']?.toString()),
+                    ),
+                    _buildInfoRow(Icons.gavel, 'Mandante',
+                        project['mandate']?.toString() ?? 'Sin registro'),
+                    _buildInfoRow(Icons.public, 'Contactos externos',
+                        project['external']?.toString() ?? 'Sin registro'),
+                    _buildInfoRowWithAction(
+                      Icons.description, 
+                      'Contratos',
+                      project['contracts']?.toString() ?? 'Sin registro',
+                      _buildActionWidget(project['contracts']?.toString()),
+                    ),
+                  ],
+                ),
 
                 const SizedBox(height: 16),
 
                 // Observaciones
-                if (project['observations'] != null &&
-                    project['observations'].toString().isNotEmpty)
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.note, color: Colors.grey.shade600),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Observaciones',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey.shade700,
-                                ),
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.note, color: Colors.grey.shade600),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Observaciones',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade700,
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey.shade200),
                             ),
-                            child: Text(
-                              project['observations'],
-                              style: const TextStyle(fontSize: 16),
-                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade200),
                           ),
-                        ],
-                      ),
+                          child: Text(
+                            project['observations']?.toString() ?? 'Sin registro',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                ),
 
                 const SizedBox(height: 16),
 
@@ -229,7 +266,7 @@ class ProjectDetailScreen extends StatelessWidget {
                     _buildInfoRowWithAction(
                       Icons.folder_open,
                       'Ruta del servidor',
-                      project['local_path'] ?? 'Sin ruta',
+                      project['local_path'] ?? 'Sin registro',
                       project['local_path'] != null
                           ? OpenProject(
                               windowsPath: project['local_path'],

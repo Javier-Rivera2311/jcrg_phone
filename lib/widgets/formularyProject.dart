@@ -60,7 +60,7 @@ class _FormularyProjectState extends State<FormularyProject> {
     _dateDeliveriesController.text = data['date_deliveries'] ?? '';
     _deliveriesController.text = data['deliveries']?.toString() ?? '';
     _observationsController.text = data['observations'] ?? '';
-    _localPathController.text = data['path'] ?? '';
+    _localPathController.text = data['local_path'] ?? data['path'] ?? '';
     _mandateController.text = data['mandate']?.toString() ?? '';
     _externalController.text = data['external']?.toString() ?? '';
     _contractsController.text = data['contracts']?.toString() ?? '';
@@ -176,7 +176,7 @@ class _FormularyProjectState extends State<FormularyProject> {
             ? _localPathController.text
             : null,
         "contracts": _contractsController.text.isNotEmpty
-            ? int.tryParse(_contractsController.text)
+            ? _contractsController.text
             : null,
       };
 
@@ -462,7 +462,7 @@ class _FormularyProjectState extends State<FormularyProject> {
                             prefixIcon: Icon(Icons.description),
                             border: OutlineInputBorder(),
                           ),
-                          keyboardType: TextInputType.number,
+                          keyboardType: TextInputType.text,
                         ),
                       ),
                     ],
