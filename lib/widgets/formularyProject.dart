@@ -31,15 +31,15 @@ class _FormularyProjectState extends State<FormularyProject> {
   final TextEditingController _deliveriesController = TextEditingController();
   final TextEditingController _observationsController = TextEditingController();
   final TextEditingController _localPathController = TextEditingController();
-  final TextEditingController _mandateController = TextEditingController();
-  final TextEditingController _externalController = TextEditingController();
-  final TextEditingController _contractsController = TextEditingController();
+  final TextEditingController mandateController = TextEditingController();
+  final TextEditingController contractsController = TextEditingController();
 
   List<String> _workersList = [];
   String? _selectedManager;
   List<String> _selectedWorkers = [];
   List<Map<String, dynamic>> _contactsList = [];
   List<String> _selectedContacts = [];
+  String _selectedState = 'Sin empezar'; // Estado por defecto
 
   @override
   void initState() {
@@ -51,20 +51,78 @@ class _FormularyProjectState extends State<FormularyProject> {
     }
   }
 
+  String _formatDateForInput(String? dateString) {
+    if (dateString == null || dateString.isEmpty) return '';
+
+    try {
+      String dateOnly;
+      // Si la fecha viene en formato ISO (2025-07-27T00:00:00.000Z)
+      if (dateString.contains('T')) {
+        dateOnly = dateString.split('T')[0];
+      } else {
+        // Si la fecha viene en formato simple (2025-07-27)
+        dateOnly = dateString;
+      }
+
+      // Convertir de YYYY-MM-DD a DD-MM-YYYY
+      List<String> parts = dateOnly.split('-');
+      if (parts.length == 3) {
+        String year = parts[0];
+        String month = parts[1];
+        String day = parts[2];
+        return '$day-$month-$year';
+      }
+
+      return dateOnly;
+    } catch (e) {
+      return '';
+    }
+  }
+
+  String _formatDateForDisplay(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}';
+  }
+
+  String _convertToBackendFormat(String displayDate) {
+    if (displayDate.isEmpty) return '';
+
+    try {
+      // Si está en formato DD-MM-YYYY, convertir a YYYY-MM-DD
+      List<String> parts = displayDate.split('-');
+      if (parts.length == 3 && parts[0].length == 2) {
+        return '${parts[2]}-${parts[1]}-${parts[0]}';
+      }
+
+      return displayDate;
+    } catch (e) {
+      return displayDate;
+    }
+  }
+
   void _populateInitialData() {
     final data = widget.initialData!;
+    print('========== POPULATE INITIAL DATA ==========');
+    print('All data keys: ${data.keys.toList()}');
+    print('mandante from data: "${data['mandante']}"');
+    print('contracts from data: "${data['contracts']}"');
+
     _nameProjectController.text = data['Name_project'] ?? '';
     _cityController.text = data['city'] ?? '';
-    _initDateController.text = data['init_date'] ?? '';
-    _endDateController.text = data['end_date'] ?? '';
-    _dateDeliveriesController.text = data['date_deliveries'] ?? '';
+    _initDateController.text = _formatDateForInput(data['init_date']);
+    _endDateController.text = _formatDateForInput(data['end_date']);
+    _dateDeliveriesController.text =
+        _formatDateForInput(data['date_deliveries']);
     _deliveriesController.text = data['deliveries']?.toString() ?? '';
     _observationsController.text = data['observations'] ?? '';
     _localPathController.text = data['local_path'] ?? data['path'] ?? '';
-    _mandateController.text = data['mandate']?.toString() ?? '';
-    _externalController.text = data['external']?.toString() ?? '';
-    _contractsController.text = data['contracts']?.toString() ?? '';
+    mandateController.text = data['mandante']?.toString() ?? '';
+    contractsController.text = data['contracts']?.toString() ?? '';
     _selectedManager = data['in_charge'];
+    _selectedState = data['state'] ?? 'Sin empezar';
+
+    print('mandante controller after populate: "${mandateController.text}"');
+    print('contracts controller after populate: "${contractsController.text}"');
+    print('==========================================');
 
     // Convertir string de trabajadores a lista
     if (data['workers'] != null && data['workers'].toString().isNotEmpty) {
@@ -129,9 +187,8 @@ class _FormularyProjectState extends State<FormularyProject> {
     _deliveriesController.dispose();
     _observationsController.dispose();
     _localPathController.dispose();
-    _mandateController.dispose();
-    _externalController.dispose();
-    _contractsController.dispose();
+    mandateController.dispose();
+    contractsController.dispose();
     super.dispose();
   }
 
@@ -144,6 +201,14 @@ class _FormularyProjectState extends State<FormularyProject> {
       return;
     }
 
+    // Debug específico antes del envío
+    print('=== DEBUG ANTES DEL ENVÍO ===');
+    print('Mandante controller text: "${mandateController.text}"');
+    print('Contracts controller text: "${contractsController.text}"');
+    print('Mandante controller length: ${mandateController.text.length}');
+    print('Contracts controller length: ${contractsController.text.length}');
+    print('===============================');
+
     String url;
     http.Response response;
 
@@ -152,12 +217,13 @@ class _FormularyProjectState extends State<FormularyProject> {
         "Name_project": _nameProjectController.text,
         "city": _cityController.text,
         "init_date": _initDateController.text.isNotEmpty
-            ? _initDateController.text
+            ? _convertToBackendFormat(_initDateController.text)
             : null,
-        "end_date":
-            _endDateController.text.isNotEmpty ? _endDateController.text : null,
+        "end_date": _endDateController.text.isNotEmpty
+            ? _convertToBackendFormat(_endDateController.text)
+            : null,
         "date_deliveries": _dateDeliveriesController.text.isNotEmpty
-            ? _dateDeliveriesController.text
+            ? _convertToBackendFormat(_dateDeliveriesController.text)
             : null,
         "deliveries": _deliveriesController.text.isNotEmpty
             ? _deliveriesController.text
@@ -168,17 +234,28 @@ class _FormularyProjectState extends State<FormularyProject> {
         "in_charge": _selectedManager,
         "workers":
             _selectedWorkers.isNotEmpty ? _selectedWorkers.join(', ') : null,
-        "mandate":
-            _mandateController.text.isNotEmpty ? _mandateController.text : null,
+        "mandante":
+            mandateController.text.trim(), // Cambiar de "mandate" a "mandante"
         "external":
             _selectedContacts.isNotEmpty ? _selectedContacts.join(', ') : null,
         "local_path": _localPathController.text.isNotEmpty
             ? _localPathController.text
             : null,
-        "contracts": _contractsController.text.isNotEmpty
-            ? _contractsController.text
+        "contracts": contractsController.text.trim().isNotEmpty
+            ? contractsController.text.trim()
             : null,
+        "state": _selectedState,
       };
+
+      // Debug adicional específico para mandante
+      print('=== DEBUG ESPECÍFICO PARA MANDANTE ===');
+      print('mandateController.text original: "${mandateController.text}"');
+      print(
+          'mandateController.text.trim(): "${mandateController.text.trim()}"');
+      print('mandante en body final: "${body["mandante"]}"');
+      print('mandante es string vacío: ${body["mandante"] == ""}');
+      print('mandante es null: ${body["mandante"] == null}');
+      print('=====================================');
 
       if (widget.isEdit && widget.initialData != null) {
         // Modo edición: usar PUT
@@ -217,6 +294,8 @@ class _FormularyProjectState extends State<FormularyProject> {
 
       print('Response status: ${response.statusCode}'); // Debug
       print('Response body: ${response.body}'); // Debug
+      print(
+          'JSON body sent: ${json.encode(body)}'); // Debug para ver exactamente qué JSON se envió
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -243,6 +322,43 @@ class _FormularyProjectState extends State<FormularyProject> {
     }
   }
 
+  Future<void> _testMandateAndContracts() async {
+    print('========== TESTING MANDATE AND CONTRACTS ==========');
+
+    if (widget.isEdit && widget.initialData != null) {
+      final projectId = widget.initialData!['id_server'] ??
+          widget.initialData!['ID'] ??
+          widget.initialData!['id'];
+
+      final testBody = {
+        "mandante": "TEST MANDANTE", // Cambiar de "mandate" a "mandante"
+        "contracts": "https://test-contracts.com"
+      };
+
+      print('Test projectId: $projectId');
+      print('Test body: $testBody');
+
+      try {
+        final response = await http.put(
+          Uri.parse(
+              'https://backend-jcrgapp.onrender.com/user/updateProject/$projectId'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode(testBody),
+        );
+
+        print('Test response status: ${response.statusCode}');
+        print('Test response body: ${response.body}');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Test enviado - Status: ${response.statusCode}')),
+        );
+      } catch (e) {
+        print('Test error: $e');
+      }
+    }
+  }
+
   void _clearForm() {
     _formKey.currentState?.reset();
     _nameProjectController.clear();
@@ -253,13 +369,13 @@ class _FormularyProjectState extends State<FormularyProject> {
     _deliveriesController.clear();
     _observationsController.clear();
     _localPathController.clear();
-    _mandateController.clear();
-    _externalController.clear();
-    _contractsController.clear();
+    mandateController.clear();
+    contractsController.clear();
     setState(() {
       _selectedManager = null;
       _selectedWorkers = [];
       _selectedContacts = [];
+      _selectedState = 'Sin empezar';
     });
   }
 
@@ -338,6 +454,8 @@ class _FormularyProjectState extends State<FormularyProject> {
                     ),
                   ),
                   const SizedBox(height: 18),
+                  // Removed invalid TextFormField with 'child' parameter
+                  const SizedBox(height: 18),
                   TextFormField(
                     controller: _nameProjectController,
                     decoration: const InputDecoration(
@@ -379,7 +497,7 @@ class _FormularyProjectState extends State<FormularyProject> {
                       );
                       if (picked != null) {
                         _initDateController.text =
-                            picked.toLocal().toString().split(' ')[0];
+                            _formatDateForDisplay(picked);
                       }
                     },
                   ),
@@ -400,8 +518,7 @@ class _FormularyProjectState extends State<FormularyProject> {
                         lastDate: DateTime(2100),
                       );
                       if (picked != null) {
-                        _endDateController.text =
-                            picked.toLocal().toString().split(' ')[0];
+                        _endDateController.text = _formatDateForDisplay(picked);
                       }
                     },
                     validator: (value) => value == null || value.isEmpty
@@ -426,7 +543,7 @@ class _FormularyProjectState extends State<FormularyProject> {
                       );
                       if (picked != null) {
                         _dateDeliveriesController.text =
-                            picked.toLocal().toString().split(' ')[0];
+                            _formatDateForDisplay(picked);
                       }
                     },
                   ),
@@ -445,24 +562,31 @@ class _FormularyProjectState extends State<FormularyProject> {
                     children: [
                       Expanded(
                         child: TextFormField(
-                          controller: _mandateController,
+                          controller: mandateController,
                           decoration: const InputDecoration(
-                            labelText: 'Mandante (opcional)',
+                            labelText: 'Mandante',
                             prefixIcon: Icon(Icons.gavel),
                             border: OutlineInputBorder(),
                           ),
+                          onChanged: (value) {
+                            print('Mandante field changed to: "$value"');
+                          },
                         ),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
                         child: TextFormField(
-                          controller: _contractsController,
+                          controller: contractsController,
                           decoration: const InputDecoration(
-                            labelText: 'Contratos (opcional)',
-                            prefixIcon: Icon(Icons.description),
+                            labelText: 'URL de contratos',
+                            prefixIcon: Icon(Icons.link),
                             border: OutlineInputBorder(),
+                            hintText: 'http://ejemplo.com/contrato',
                           ),
-                          keyboardType: TextInputType.text,
+                          keyboardType: TextInputType.url,
+                          onChanged: (value) {
+                            print('Contracts field changed to: "$value"');
+                          },
                         ),
                       ),
                     ],
@@ -654,6 +778,31 @@ class _FormularyProjectState extends State<FormularyProject> {
                       prefixIcon: Icon(Icons.folder_open),
                       border: OutlineInputBorder(),
                     ),
+                  ),
+                  const SizedBox(height: 14),
+                  // Selector de estado del proyecto
+                  DropdownButtonFormField<String>(
+                    value: _selectedState,
+                    decoration: const InputDecoration(
+                      labelText: 'Estado del proyecto',
+                      prefixIcon: Icon(Icons.flag),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                          value: 'Sin empezar', child: Text('Sin empezar')),
+                      DropdownMenuItem(
+                          value: 'Comenzado', child: Text('Comenzado')),
+                      DropdownMenuItem(
+                          value: 'Finalizado', child: Text('Finalizado')),
+                      DropdownMenuItem(
+                          value: 'Atrasado', child: Text('Atrasado')),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedState = value!;
+                      });
+                    },
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(

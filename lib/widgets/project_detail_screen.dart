@@ -22,12 +22,17 @@ class ProjectDetailScreen extends StatelessWidget {
 
   bool _isUrl(String? text) {
     if (text == null || text.isEmpty) return false;
-    return text.startsWith('http://') || text.startsWith('https://') || text.startsWith('www.');
+    return text.startsWith('http://') ||
+        text.startsWith('https://') ||
+        text.startsWith('www.');
   }
 
   bool _isFilePath(String? text) {
     if (text == null || text.isEmpty) return false;
-    return text.startsWith(r'\\') || text.contains(':') || text.contains('/') || text.contains('\\');
+    return text.startsWith(r'\\') ||
+        text.contains(':') ||
+        text.contains('/') ||
+        text.contains('\\');
   }
 
   Future<void> _openUrl(String url) async {
@@ -35,7 +40,7 @@ class ProjectDetailScreen extends StatelessWidget {
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       finalUrl = 'https://$url';
     }
-    
+
     final Uri uri = Uri.parse(finalUrl);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -44,7 +49,7 @@ class ProjectDetailScreen extends StatelessWidget {
 
   Widget? _buildActionWidget(String? value) {
     if (value == null || value.isEmpty) return null;
-    
+
     if (_isUrl(value)) {
       return IconButton(
         icon: const Icon(Icons.open_in_browser, size: 20),
@@ -58,7 +63,7 @@ class ProjectDetailScreen extends StatelessWidget {
         icon: Icons.open_in_new,
       );
     }
-    
+
     return null;
   }
 
@@ -192,17 +197,17 @@ class ProjectDetailScreen extends StatelessWidget {
                   Colors.purple,
                   [
                     _buildInfoRowWithAction(
-                      Icons.inventory, 
+                      Icons.inventory,
                       'URL de entregas',
                       project['deliveries']?.toString() ?? 'Sin registro',
                       _buildActionWidget(project['deliveries']?.toString()),
                     ),
                     _buildInfoRow(Icons.gavel, 'Mandante',
-                        project['mandate']?.toString() ?? 'Sin registro'),
+                        project['mandante']?.toString() ?? 'Sin registro'),
                     _buildInfoRow(Icons.public, 'Contactos externos',
                         project['external']?.toString() ?? 'Sin registro'),
                     _buildInfoRowWithAction(
-                      Icons.description, 
+                      Icons.description,
                       'Contratos',
                       project['contracts']?.toString() ?? 'Sin registro',
                       _buildActionWidget(project['contracts']?.toString()),
@@ -246,7 +251,8 @@ class ProjectDetailScreen extends StatelessWidget {
                             border: Border.all(color: Colors.grey.shade200),
                           ),
                           child: Text(
-                            project['observations']?.toString() ?? 'Sin registro',
+                            project['observations']?.toString() ??
+                                'Sin registro',
                             style: const TextStyle(fontSize: 16),
                           ),
                         ),
