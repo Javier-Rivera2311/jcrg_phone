@@ -260,9 +260,7 @@ class _FormularyProjectState extends State<FormularyProject> {
       if (widget.isEdit && widget.initialData != null) {
         // Modo edición: usar PUT
         print('Initial data: ${widget.initialData}'); // Debug
-        final projectId = widget.initialData!['id_server'] ??
-            widget.initialData!['ID'] ??
-            widget.initialData!['id'];
+        final projectId = widget.initialData!['ID'] ?? widget.initialData!['id'];
         print('Project ID found: $projectId'); // Debug
 
         if (projectId == null) {
@@ -326,9 +324,7 @@ class _FormularyProjectState extends State<FormularyProject> {
     print('========== TESTING MANDATE AND CONTRACTS ==========');
 
     if (widget.isEdit && widget.initialData != null) {
-      final projectId = widget.initialData!['id_server'] ??
-          widget.initialData!['ID'] ??
-          widget.initialData!['id'];
+      final projectId = widget.initialData!['ID'] ?? widget.initialData!['id'];
 
       final testBody = {
         "mandante": "TEST MANDANTE", // Cambiar de "mandate" a "mandante"

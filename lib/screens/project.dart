@@ -16,7 +16,7 @@ class ProjectScreen extends StatefulWidget {
 class _ProjectScreenState extends State<ProjectScreen> {
   Map<String, List<Map<String, dynamic>>> groupedProjects = {};
   String _searchQuery = '';
-  int _selectedTab = 0; // 0 para activos, 1 para completados
+  int _selectedTab = 0; // 0 para en curso, 1 para finalizados, 2 para atrasados
 
   @override
   void initState() {
@@ -53,22 +53,34 @@ class _ProjectScreenState extends State<ProjectScreen> {
     }
   }
 
-  Map<String, List<Map<String, dynamic>>> getFilteredProjects(
-      bool isCompleted) {
+  Map<String, List<Map<String, dynamic>>> getFilteredProjects(int tabIndex) {
     Map<String, List<Map<String, dynamic>>> filtered = {};
 
     for (var entry in groupedProjects.entries) {
       final city = entry.key.toLowerCase();
       final filteredProjects = entry.value.where((project) {
-        // Filtrar por estado del proyecto
-        final projectCompleted = _isProjectCompleted(project);
-        if (projectCompleted != isCompleted) return false;
+        // Filtrar por estado del proyecto según la pestaña
+        final projectState = project['state']?.toString() ?? 'Sin empezar';
+        bool matchesTab = false;
+
+        switch (tabIndex) {
+          case 0: // En curso (Sin empezar + Comenzado)
+            matchesTab = projectState == 'Sin empezar' || projectState == 'Comenzado';
+            break;
+          case 1: // Finalizados
+            matchesTab = projectState == 'Finalizado';
+            break;
+          case 2: // Atrasados
+            matchesTab = projectState == 'Atrasado';
+            break;
+        }
+
+        if (!matchesTab) return false;
 
         // Filtrar por búsqueda si hay query
         if (_searchQuery.isNotEmpty) {
           final name = (project['Name_project'] ?? '').toString().toLowerCase();
-          final inCharge =
-              (project['in_charge'] ?? '').toString().toLowerCase();
+          final inCharge = (project['in_charge'] ?? '').toString().toLowerCase();
           return name.contains(_searchQuery.toLowerCase()) ||
               inCharge.contains(_searchQuery.toLowerCase()) ||
               city.contains(_searchQuery.toLowerCase());
@@ -83,32 +95,25 @@ class _ProjectScreenState extends State<ProjectScreen> {
     return filtered;
   }
 
-  bool _isProjectCompleted(Map<String, dynamic> project) {
-    final endDate = project['end_date'];
-    if (endDate == null) return false;
+  Color _getProjectStatusColor(Map<String, dynamic> project) {
+    final state = project['state']?.toString() ?? 'Sin empezar';
 
-    final endDateTime = DateTime.parse(endDate);
-    final now = DateTime.now();
-    return endDateTime.isBefore(now);
+    switch (state) {
+      case 'Sin empezar':
+        return Colors.grey;
+      case 'Comenzado':
+        return Colors.blue;
+      case 'Finalizado':
+        return Colors.green;
+      case 'Atrasado':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
   }
 
-  Color _getProjectStatusColor(Map<String, dynamic> project) {
-    final endDate = project['end_date'];
-    if (endDate == null) return Colors.grey;
-
-    final endDateTime = DateTime.parse(endDate);
-    final now = DateTime.now();
-    final daysLeft = endDateTime.difference(now).inDays;
-
-    if (daysLeft < 0)
-      return const Color.fromARGB(
-          255, 76, 175, 80); // Verde medio para finalizados
-    if (daysLeft <= 7)
-      return const Color.fromARGB(255, 244, 67, 54); // Rojo para urgentes
-    if (daysLeft <= 30)
-      return const Color.fromARGB(255, 33, 150, 243); // Azul para próximos
-    return const Color.fromARGB(
-        255, 21, 101, 192); // Azul oscuro para largo plazo
+  String _getProjectStatusText(Map<String, dynamic> project) {
+    return project['state']?.toString() ?? 'Sin empezar';
   }
 
   String _formatDate(String? dateString) {
@@ -120,20 +125,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
     } catch (e) {
       return 'Fecha inválida';
     }
-  }
-
-  String _getProjectStatusText(Map<String, dynamic> project) {
-    final endDate = project['end_date'];
-    if (endDate == null) return 'Sin fecha';
-
-    final endDateTime = DateTime.parse(endDate);
-    final now = DateTime.now();
-    final daysLeft = endDateTime.difference(now).inDays;
-
-    if (daysLeft < 0) return 'Finalizados';
-    if (daysLeft == 0) return 'Finaliza hoy';
-    if (daysLeft <= 7) return '$daysLeft días restantes';
-    return 'En curso';
   }
 
   @override
@@ -178,7 +169,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
       ),
       body: Column(
         children: [
-          // Botones de navegación personalizados
+          // Botones de navegación personalizados para 3 pestañas
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
@@ -190,8 +181,8 @@ class _ProjectScreenState extends State<ProjectScreen> {
                         _selectedTab = 0;
                       });
                     },
-                    icon: const Icon(Icons.access_time),
-                    label: const Text('Activos'),
+                    icon: const Icon(Icons.play_arrow),
+                    label: const Text('En Curso'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedTab == 0
                           ? const Color.fromARGB(255, 116, 169, 255)
@@ -205,7 +196,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () {
@@ -214,12 +205,34 @@ class _ProjectScreenState extends State<ProjectScreen> {
                       });
                     },
                     icon: const Icon(Icons.check_circle),
-                    label: const Text('Completados'),
+                    label: const Text('Finalizados'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor:
                           _selectedTab == 1 ? Colors.green : Colors.grey[300],
                       foregroundColor:
                           _selectedTab == 1 ? Colors.white : Colors.black54,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _selectedTab = 2;
+                      });
+                    },
+                    icon: const Icon(Icons.warning),
+                    label: const Text('Atrasados'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          _selectedTab == 2 ? Colors.red : Colors.grey[300],
+                      foregroundColor:
+                          _selectedTab == 2 ? Colors.white : Colors.black54,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -264,8 +277,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
             ),
           ),
           Expanded(
-            child: _buildProjectList(
-                _selectedTab == 1), // true para completados, false para activos
+            child: _buildProjectList(_selectedTab),
           ),
         ],
       ),
@@ -285,24 +297,43 @@ class _ProjectScreenState extends State<ProjectScreen> {
     );
   }
 
-  Widget _buildProjectList(bool isCompleted) {
-    final filteredGroupedProjects = getFilteredProjects(isCompleted);
+  Widget _buildProjectList(int tabIndex) {
+    final filteredGroupedProjects = getFilteredProjects(tabIndex);
 
     if (filteredGroupedProjects.isEmpty) {
+      String emptyMessage;
+      IconData emptyIcon;
+
+      switch (tabIndex) {
+        case 0:
+          emptyMessage = 'No hay proyectos en curso';
+          emptyIcon = Icons.play_arrow;
+          break;
+        case 1:
+          emptyMessage = 'No hay proyectos finalizados';
+          emptyIcon = Icons.check_circle_outline;
+          break;
+        case 2:
+          emptyMessage = 'No hay proyectos atrasados';
+          emptyIcon = Icons.warning_amber_outlined;
+          break;
+        default:
+          emptyMessage = 'No hay proyectos';
+          emptyIcon = Icons.folder_open;
+      }
+
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              isCompleted ? Icons.check_circle_outline : Icons.folder_open,
+              emptyIcon,
               size: 64,
               color: Colors.grey,
             ),
             const SizedBox(height: 16),
             Text(
-              isCompleted
-                  ? 'No hay proyectos completados'
-                  : 'No hay proyectos activos',
+              emptyMessage,
               style: const TextStyle(fontSize: 18, color: Colors.grey),
             ),
           ],
@@ -321,6 +352,27 @@ class _ProjectScreenState extends State<ProjectScreen> {
         final city = entry.key;
         final projects = entry.value;
 
+        Color sectionColor;
+        String sectionLabel;
+
+        switch (tabIndex) {
+          case 0:
+            sectionColor = Colors.blueAccent;
+            sectionLabel = 'en curso';
+            break;
+          case 1:
+            sectionColor = Colors.green;
+            sectionLabel = 'finalizados';
+            break;
+          case 2:
+            sectionColor = Colors.red;
+            sectionLabel = 'atrasados';
+            break;
+          default:
+            sectionColor = Colors.blueAccent;
+            sectionLabel = 'activos';
+        }
+
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 8),
           elevation: 2,
@@ -333,13 +385,12 @@ class _ProjectScreenState extends State<ProjectScreen> {
             leading: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: (isCompleted ? Colors.green : Colors.blueAccent)
-                    .withOpacity(0.1),
+                color: sectionColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 Icons.location_city,
-                color: isCompleted ? Colors.green : Colors.blueAccent,
+                color: sectionColor,
               ),
             ),
             title: Text(
@@ -347,11 +398,11 @@ class _ProjectScreenState extends State<ProjectScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: isCompleted ? Colors.green : Colors.blueAccent,
+                color: sectionColor,
               ),
             ),
             subtitle: Text(
-              '${projects.length} proyecto${projects.length != 1 ? 's' : ''} ${isCompleted ? 'completado' : 'activo'}${projects.length != 1 ? 's' : ''}',
+              '${projects.length} proyecto${projects.length != 1 ? 's' : ''} $sectionLabel',
               style: const TextStyle(color: Colors.grey),
             ),
             children: projects.map((project) {
@@ -384,9 +435,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        color: isCompleted
-                            ? Colors.green.withOpacity(0.02)
-                            : Colors.blue.withOpacity(0.02),
+                        color: sectionColor.withOpacity(0.02),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -398,19 +447,13 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: (isCompleted
-                                            ? Colors.green
-                                            : Colors.blue)
-                                        .withOpacity(0.1),
+                                    color: statusColor.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Icon(
-                                    isCompleted
-                                        ? Icons.check_circle
-                                        : Icons.folder,
-                                    color: isCompleted
-                                        ? Colors.green
-                                        : Colors.blue,
+                                    tabIndex == 1 ? Icons.check_circle :
+                                    tabIndex == 2 ? Icons.warning : Icons.folder,
+                                    color: statusColor,
                                     size: 20,
                                   ),
                                 ),
@@ -523,22 +566,22 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                 ],
                               ),
                             ],
-                            if (project['mandate'] != null ||
+                            if (project['mandante'] != null ||
                                 project['external'] != null ||
                                 project['contracts'] != null) ...[
                               const SizedBox(height: 8),
                               Row(
                                 children: [
-                                  if (project['mandate'] != null)
+                                  if (project['mandante'] != null)
                                     Expanded(
                                       child: _buildInfoChip(
                                         Icons.gavel,
                                         'Mandante',
-                                        project['mandate'].toString(),
+                                        project['mandante'].toString(),
                                         Colors.brown,
                                       ),
                                     ),
-                                  if (project['mandate'] != null &&
+                                  if (project['mandante'] != null &&
                                       (project['external'] != null ||
                                           project['contracts'] != null))
                                     const SizedBox(width: 8),

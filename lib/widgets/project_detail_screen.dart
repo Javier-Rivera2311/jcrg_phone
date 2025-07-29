@@ -359,11 +359,62 @@ class ProjectDetailScreen extends StatelessWidget {
                           );
 
                           if (confirmed == true) {
-                            await http.delete(
-                              Uri.parse(
-                                  'https://backend-jcrgapp.onrender.com/user/deleteProject/${project['id_server']}'),
-                            );
-                            refreshParent();
+                            try {
+                              // Debug para ver qué ID usar
+                              print('========== DEBUG DELETE PROJECT ==========');
+                              print('Project keys: ${project.keys.toList()}');
+                              print('ID: ${project['ID']}');
+                              print('id: ${project['id']}');
+                              print('=========================================');
+
+                              // Determinar el ID correcto
+                              final projectId = project['ID'] ?? project['id'];
+                              
+                              if (projectId == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Error: ID del proyecto no encontrado'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                                return;
+                              }
+
+                              print('Using projectId for delete: $projectId');
+
+                              final response = await http.delete(
+                                Uri.parse(
+                                    'https://backend-jcrgapp.onrender.com/user/deleteProject/$projectId'),
+                              );
+
+                              print('Delete response status: ${response.statusCode}');
+                              print('Delete response body: ${response.body}');
+
+                              if (response.statusCode == 200 || response.statusCode == 204) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Proyecto eliminado correctamente'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                                refreshParent();
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Error al eliminar: ${response.statusCode}'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              print('Delete error: $e');
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error de conexión: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
                           }
                         },
                         icon: const Icon(Icons.delete),
