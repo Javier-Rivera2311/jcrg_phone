@@ -115,7 +115,8 @@ class _FormularyTicketState extends State<FormularyTicket> {
               elevation: 0,
               title: const Text(
                 'Crear Ticket de Soporte',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                style:
+                    TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
               ),
               centerTitle: true,
               foregroundColor: Colors.white,
@@ -134,9 +135,7 @@ class _FormularyTicketState extends State<FormularyTicket> {
                 child: Card(
                   elevation: 8,
                   margin: EdgeInsets.symmetric(
-                    horizontal: isWide ? 40 : 16, 
-                    vertical: 24
-                  ),
+                      horizontal: isWide ? 40 : 16, vertical: 24),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -209,7 +208,8 @@ class _FormularyTicketState extends State<FormularyTicket> {
                                 decoration: InputDecoration(
                                   labelText: 'Título del problema',
                                   hintText: 'Ej: No puedo acceder al sistema',
-                                  prefixIcon: Icon(Icons.title, color: Colors.red.shade600),
+                                  prefixIcon: Icon(Icons.title,
+                                      color: Colors.red.shade600),
                                   filled: true,
                                   fillColor: Colors.white,
                                   border: OutlineInputBorder(
@@ -218,17 +218,21 @@ class _FormularyTicketState extends State<FormularyTicket> {
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(15),
-                                    borderSide: BorderSide(color: Colors.grey.shade300),
+                                    borderSide:
+                                        BorderSide(color: Colors.grey.shade300),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(15),
-                                    borderSide: BorderSide(color: Colors.red.shade400, width: 2),
+                                    borderSide: BorderSide(
+                                        color: Colors.red.shade400, width: 2),
                                   ),
-                                  labelStyle: TextStyle(color: Colors.grey.shade700),
+                                  labelStyle:
+                                      TextStyle(color: Colors.grey.shade700),
                                 ),
-                                validator: (value) => value == null || value.isEmpty
-                                    ? 'Por favor ingrese un título'
-                                    : null,
+                                validator: (value) =>
+                                    value == null || value.isEmpty
+                                        ? 'Por favor ingrese un título'
+                                        : null,
                               ),
                             ),
                             const SizedBox(height: 20),
@@ -248,8 +252,10 @@ class _FormularyTicketState extends State<FormularyTicket> {
                                 controller: descriptionController,
                                 decoration: InputDecoration(
                                   labelText: 'Descripción detallada',
-                                  hintText: 'Describe el problema con el mayor detalle posible...',
-                                  prefixIcon: Icon(Icons.description, color: Colors.red.shade600),
+                                  hintText:
+                                      'Describe el problema con el mayor detalle posible...',
+                                  prefixIcon: Icon(Icons.description,
+                                      color: Colors.red.shade600),
                                   filled: true,
                                   fillColor: Colors.white,
                                   border: OutlineInputBorder(
@@ -258,20 +264,24 @@ class _FormularyTicketState extends State<FormularyTicket> {
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(15),
-                                    borderSide: BorderSide(color: Colors.grey.shade300),
+                                    borderSide:
+                                        BorderSide(color: Colors.grey.shade300),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(15),
-                                    borderSide: BorderSide(color: Colors.red.shade400, width: 2),
+                                    borderSide: BorderSide(
+                                        color: Colors.red.shade400, width: 2),
                                   ),
-                                  labelStyle: TextStyle(color: Colors.grey.shade700),
+                                  labelStyle:
+                                      TextStyle(color: Colors.grey.shade700),
                                   alignLabelWithHint: true,
                                 ),
                                 maxLines: 4,
                                 minLines: 3,
-                                validator: (value) => value == null || value.isEmpty
-                                    ? 'Por favor describe el problema'
-                                    : null,
+                                validator: (value) =>
+                                    value == null || value.isEmpty
+                                        ? 'Por favor describe el problema'
+                                        : null,
                               ),
                             ),
                             const SizedBox(height: 20),
@@ -291,7 +301,8 @@ class _FormularyTicketState extends State<FormularyTicket> {
                                 ],
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 4),
                                 child: DropdownButtonFormField<String>(
                                   value: priority,
                                   decoration: InputDecoration(
@@ -301,14 +312,16 @@ class _FormularyTicketState extends State<FormularyTicket> {
                                       color: _getPriorityColor(priority),
                                     ),
                                     border: InputBorder.none,
-                                    labelStyle: TextStyle(color: Colors.grey.shade700),
+                                    labelStyle:
+                                        TextStyle(color: Colors.grey.shade700),
                                   ),
                                   items: [
                                     DropdownMenuItem(
                                       value: 'Baja',
                                       child: Row(
                                         children: [
-                                          Icon(Icons.low_priority, color: Colors.green, size: 20),
+                                          Icon(Icons.low_priority,
+                                              color: Colors.green, size: 20),
                                           const SizedBox(width: 8),
                                           const Text('Baja - No es urgente'),
                                         ],
@@ -318,9 +331,11 @@ class _FormularyTicketState extends State<FormularyTicket> {
                                       value: 'Media',
                                       child: Row(
                                         children: [
-                                          Icon(Icons.remove, color: Colors.orange, size: 20),
+                                          Icon(Icons.remove,
+                                              color: Colors.orange, size: 20),
                                           const SizedBox(width: 8),
-                                          const Text('Media - Moderadamente urgente'),
+                                          const Text(
+                                              'Media - Moderadamente urgente'),
                                         ],
                                       ),
                                     ),
@@ -328,7 +343,8 @@ class _FormularyTicketState extends State<FormularyTicket> {
                                       value: 'Alta',
                                       child: Row(
                                         children: [
-                                          Icon(Icons.priority_high, color: Colors.red, size: 20),
+                                          Icon(Icons.priority_high,
+                                              color: Colors.red, size: 20),
                                           const SizedBox(width: 8),
                                           const Text('Alta - Muy urgente'),
                                         ],
@@ -336,7 +352,8 @@ class _FormularyTicketState extends State<FormularyTicket> {
                                     ),
                                   ],
                                   onChanged: (value) {
-                                    if (value != null) setState(() => priority = value);
+                                    if (value != null)
+                                      setState(() => priority = value);
                                   },
                                   dropdownColor: Colors.white,
                                   borderRadius: BorderRadius.circular(15),
@@ -415,7 +432,8 @@ class _FormularyTicketState extends State<FormularyTicket> {
                                           }
                                         }
                                       },
-                                      icon: const Icon(Icons.send, color: Colors.white),
+                                      icon: const Icon(Icons.send,
+                                          color: Colors.white),
                                       label: const Text(
                                         'Enviar Ticket de Soporte',
                                         style: TextStyle(
@@ -428,7 +446,8 @@ class _FormularyTicketState extends State<FormularyTicket> {
                                         backgroundColor: Colors.transparent,
                                         shadowColor: Colors.transparent,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(15),
+                                          borderRadius:
+                                              BorderRadius.circular(15),
                                         ),
                                       ),
                                     ),

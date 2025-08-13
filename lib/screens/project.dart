@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async'; // ← NUEVO IMPORT
+
 // Importa tu formulario y pantalla de detalle de proyecto
 import '../widgets/formularyProject.dart';
 import '../widgets/project_detail_screen.dart';
@@ -17,11 +19,27 @@ class _ProjectScreenState extends State<ProjectScreen> {
   Map<String, List<Map<String, dynamic>>> groupedProjects = {};
   String _searchQuery = '';
   int _selectedTab = 0; // 0 para en curso, 1 para finalizados, 2 para atrasados
+  Timer? _statusCheckTimer; // Agregar referencia al timer
 
   @override
   void initState() {
     super.initState();
     fetchProjects();
+    // Ejecutar verificación periódica cada 5 minutos
+    _statusCheckTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
+      if (mounted) {
+        _checkAllProjectsStatus();
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    // Cancelar el timer al dispose del widget
+    _statusCheckTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> fetchProjects() async {
@@ -697,5 +715,115 @@ class _ProjectScreenState extends State<ProjectScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _checkAndUpdateOverdueStatus(Map<String, dynamic> project) async {
+    final endDate = project['end_date'];
+    final currentState = project['state']?.toString() ?? 'Sin empezar';
+    
+    print('=== CHECKING PROJECT STATE ===');
+    print('Project: ${project['Name_project']}');
+    print('End date: $endDate');
+    print('Current state: $currentState');
+    
+    // Solo verificar si hay fecha de finalización y no está ya marcado como atrasado o finalizado
+    if (endDate != null && currentState != 'Atrasado' && currentState != 'Finalizado') {
+      try {
+        final endDateTime = DateTime.parse(endDate);
+        final now = DateTime.now();
+        // Normalizar las fechas para comparar solo el día (sin hora)
+        final endDateOnly = DateTime(endDateTime.year, endDateTime.month, endDateTime.day);
+        final nowDateOnly = DateTime(now.year, now.month, now.day);
+        
+        print('End date only: $endDateOnly');
+        print('Current date only: $nowDateOnly');
+        print('Is overdue: ${nowDateOnly.isAfter(endDateOnly)}');
+        
+        // Si la fecha actual es posterior a la fecha de finalización (día siguiente)
+        if (nowDateOnly.isAfter(endDateOnly)) {
+          print('Proyecto ${project['Name_project']} está atrasado, actualizando estado...');
+          
+          final projectId = project['ID'] ?? project['id'];
+          if (projectId != null) {
+            final updateSuccess = await _updateProjectStatus(projectId, 'Atrasado');
+            if (updateSuccess) {
+              // Actualizar localmente para reflejar el cambio inmediatamente
+              project['state'] = 'Atrasado';
+              print('Estado actualizado localmente a: Atrasado');
+            } else {
+              print('Error al actualizar estado en el servidor');
+            }
+          } else {
+            print('No se encontró ID del proyecto');
+          }
+        } else {
+          print('Proyecto no está atrasado aún');
+        }
+      } catch (e) {
+        print('Error parsing date for project ${project['Name_project']}: $e');
+      }
+    } else {
+      print('Proyecto ya está finalizado o atrasado, o no tiene fecha de finalización');
+    }
+    print('==============================');
+  }
+
+  Future<bool> _updateProjectStatus(dynamic projectId, String newState) async {
+    try {
+      print('Updating project $projectId to state: $newState');
+      
+      final body = {
+        "state": newState,
+      };
+
+      final response = await http.put(
+        Uri.parse('https://backend-jcrgapp.onrender.com/user/updateProject/$projectId'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
+
+      print('Update response status: ${response.statusCode}');
+      print('Update response body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print('Estado actualizado a $newState para proyecto ID: $projectId');
+        return true;
+      } else {
+        print('Error al actualizar estado: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('Error updating project status: $e');
+      return false;
+    }
+  }
+
+  // Función para verificar todos los proyectos periódicamente
+  Future<void> _checkAllProjectsStatus() async {
+    if (!mounted) return; // Verificar si el widget sigue montado
+    
+    print('=== VERIFICACIÓN PERIÓDICA DE ESTADOS ===');
+    bool hasUpdates = false;
+    
+    for (var cityEntry in groupedProjects.entries) {
+      for (var project in cityEntry.value) {
+        final originalState = project['state']?.toString() ?? 'Sin empezar';
+        await _checkAndUpdateOverdueStatus(project);
+        final newState = project['state']?.toString() ?? 'Sin empezar';
+        
+        if (originalState != newState) {
+          hasUpdates = true;
+          print('Estado cambiado para ${project['Name_project']}: $originalState -> $newState');
+        }
+      }
+    }
+    
+    if (hasUpdates && mounted) {
+      setState(() {
+        // Forzar actualización de la UI
+      });
+      print('UI actualizada debido a cambios de estado');
+    }
+    print('=========================================');
   }
 }

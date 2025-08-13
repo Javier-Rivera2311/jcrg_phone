@@ -56,8 +56,11 @@ class TaskDetailScreen extends StatelessWidget {
     final stateColor = _getStateColor(task['state']);
     final stateIcon = _getStateIcon(task['state']);
     final isCompleted = task['state'].toLowerCase() == 'completada';
-    final taskDate = task['date_finish'] != null ? DateTime.parse(task['date_finish']) : null;
-    final isOverdue = taskDate != null && taskDate.isBefore(DateTime.now()) && !isCompleted;
+    final taskDate = task['date_finish'] != null
+        ? DateTime.parse(task['date_finish'])
+        : null;
+    final isOverdue =
+        taskDate != null && taskDate.isBefore(DateTime.now()) && !isCompleted;
 
     return Scaffold(
       appBar: AppBar(
@@ -75,14 +78,18 @@ class TaskDetailScreen extends StatelessWidget {
                 // Header Card
                 Card(
                   elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       gradient: LinearGradient(
-                        colors: [stateColor.withOpacity(0.1), stateColor.withOpacity(0.2)],
+                        colors: [
+                          stateColor.withOpacity(0.1),
+                          stateColor.withOpacity(0.2)
+                        ],
                       ),
                     ),
                     child: Column(
@@ -103,7 +110,8 @@ class TaskDetailScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: stateColor,
                             borderRadius: BorderRadius.circular(20),
@@ -130,7 +138,8 @@ class TaskDetailScreen extends StatelessWidget {
                         if (isOverdue) ...[
                           const SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               color: Colors.red,
                               borderRadius: BorderRadius.circular(20),
@@ -138,7 +147,8 @@ class TaskDetailScreen extends StatelessWidget {
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.warning, size: 16, color: Colors.white),
+                                Icon(Icons.warning,
+                                    size: 16, color: Colors.white),
                                 SizedBox(width: 4),
                                 Text(
                                   'Vencida',
@@ -166,6 +176,8 @@ class TaskDetailScreen extends StatelessWidget {
                   [
                     _buildInfoRow(Icons.category, 'Categoría',
                         task['category'] ?? 'Sin categoría'),
+                    _buildInfoRow(Icons.work, 'ID Proyecto',
+                        task['id_project']?.toString() ?? 'No asignado'),
                     _buildInfoRow(Icons.people, 'Trabajadores',
                         task['workers'] ?? 'No asignados'),
                     _buildInfoRow(Icons.calendar_today, 'Fecha de finalización',
@@ -176,10 +188,12 @@ class TaskDetailScreen extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 // Descripción
-                if (task['description'] != null && task['description'].toString().isNotEmpty)
+                if (task['description'] != null &&
+                    task['description'].toString().isNotEmpty)
                   Card(
                     elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -187,7 +201,8 @@ class TaskDetailScreen extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.description, color: Colors.grey.shade600),
+                              Icon(Icons.description,
+                                  color: Colors.grey.shade600),
                               const SizedBox(width: 8),
                               Text(
                                 'Descripción de la Tarea',
@@ -260,7 +275,8 @@ class TaskDetailScreen extends StatelessWidget {
                                           value: 'pendiente',
                                           groupValue: selected,
                                           onChanged: (value) {
-                                            setStateDialog(() => selected = value);
+                                            setStateDialog(
+                                                () => selected = value);
                                           },
                                         ),
                                         RadioListTile<String>(
@@ -268,7 +284,8 @@ class TaskDetailScreen extends StatelessWidget {
                                           value: 'en progreso',
                                           groupValue: selected,
                                           onChanged: (value) {
-                                            setStateDialog(() => selected = value);
+                                            setStateDialog(
+                                                () => selected = value);
                                           },
                                         ),
                                         RadioListTile<String>(
@@ -276,7 +293,8 @@ class TaskDetailScreen extends StatelessWidget {
                                           value: 'completada',
                                           groupValue: selected,
                                           onChanged: (value) {
-                                            setStateDialog(() => selected = value);
+                                            setStateDialog(
+                                                () => selected = value);
                                           },
                                         ),
                                       ],
@@ -285,37 +303,44 @@ class TaskDetailScreen extends StatelessWidget {
                                 ),
                                 actions: [
                                   TextButton(
-                                    onPressed: () => Navigator.pop(context, null),
+                                    onPressed: () =>
+                                        Navigator.pop(context, null),
                                     child: const Text('Cancelar'),
                                   ),
                                   ElevatedButton(
-                                    onPressed: () => Navigator.pop(context, selected),
-                                    style: ElevatedButton.styleFrom(backgroundColor: stateColor),
+                                    onPressed: () =>
+                                        Navigator.pop(context, selected),
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: stateColor),
                                     child: const Text('Aceptar'),
                                   ),
                                 ],
                               );
                             },
                           );
-                          
-                          if (nuevoEstado != null && nuevoEstado != task['state']) {
+
+                          if (nuevoEstado != null &&
+                              nuevoEstado != task['state']) {
                             final response = await http.put(
-                              Uri.parse('https://backend-jcrgapp.onrender.com/user/Task/state'),
+                              Uri.parse(
+                                  'https://backend-jcrgapp.onrender.com/user/Task/state'),
                               headers: {'Content-Type': 'application/json'},
-                              body: json.encode({
-                                "id": task['ID'],
-                                "state": nuevoEstado
-                              }),
+                              body: json.encode(
+                                  {"id": task['ID'], "state": nuevoEstado}),
                             );
-                            
+
                             if (response.statusCode == 200) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Estado actualizado correctamente')),
+                                const SnackBar(
+                                    content: Text(
+                                        'Estado actualizado correctamente')),
                               );
                               refreshParent();
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Error al actualizar el estado')),
+                                const SnackBar(
+                                    content:
+                                        Text('Error al actualizar el estado')),
                               );
                             }
                           }
@@ -344,12 +369,14 @@ class TaskDetailScreen extends StatelessWidget {
                                   '¿Estás seguro de que deseas eliminar esta tarea?'),
                               actions: [
                                 TextButton(
-                                  onPressed: () => Navigator.pop(context, false),
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
                                   child: const Text('Cancelar'),
                                 ),
                                 ElevatedButton(
                                   onPressed: () => Navigator.pop(context, true),
-                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red),
                                   child: const Text('Eliminar'),
                                 ),
                               ],
@@ -358,17 +385,22 @@ class TaskDetailScreen extends StatelessWidget {
 
                           if (confirmed == true) {
                             final response = await http.delete(
-                              Uri.parse('https://backend-jcrgapp.onrender.com/user/Task/${task['ID']}'),
+                              Uri.parse(
+                                  'https://backend-jcrgapp.onrender.com/user/Task/${task['ID']}'),
                             );
-                            
+
                             if (response.statusCode == 200) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Tarea eliminada correctamente')),
+                                const SnackBar(
+                                    content:
+                                        Text('Tarea eliminada correctamente')),
                               );
                               refreshParent();
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Error al eliminar la tarea')),
+                                const SnackBar(
+                                    content:
+                                        Text('Error al eliminar la tarea')),
                               );
                             }
                           }
@@ -397,7 +429,8 @@ class TaskDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoSection(String title, IconData icon, Color color, List<Widget> children) {
+  Widget _buildInfoSection(
+      String title, IconData icon, Color color, List<Widget> children) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
