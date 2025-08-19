@@ -377,6 +377,20 @@ class _TaskScreenState extends State<TaskScreen> {
                                         ),
                                       ],
                                     ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: _buildInfoChip(
+                                            Icons.work,
+                                            'ID Proyecto',
+                                            task['id_project']?.toString() ??
+                                                'No asignado',
+                                            Colors.teal,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                     if (task['description'] != null &&
                                         task['description']
                                             .toString()
