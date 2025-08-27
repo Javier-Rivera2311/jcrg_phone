@@ -16,11 +16,13 @@ class _TaskScreenState extends State<TaskScreen> {
   String _searchQuery = '';
   List<Map<String, dynamic>> _allTasks = [];
   String _selectedCategory = '';
+  Map<int, String> _projectNames = {}; // Nuevo mapa para nombres de proyectos
 
   @override
   void initState() {
     super.initState();
     fetchTasks();
+    fetchProjectNames(); // Nueva llamada
   }
 
   Future<void> fetchTasks() async {
@@ -47,6 +49,49 @@ class _TaskScreenState extends State<TaskScreen> {
         });
       }
     }
+  }
+
+  Future<void> fetchProjectNames() async {
+    try {
+      final response = await http.get(
+          Uri.parse('https://backend-jcrgapp.onrender.com/user/NameProjects'));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          final List projects = data['projects'];
+          Map<int, String> projectMap = {};
+          
+          for (var project in projects) {
+            final int id = project['id'];
+            final String name = project['Name_project'] ?? 'Sin nombre';
+            projectMap[id] = name;
+          }
+          
+          if (mounted) {
+            setState(() {
+              _projectNames = projectMap;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      print('Error fetching project names: $e');
+    }
+  }
+
+  String _getProjectName(dynamic projectId) {
+    if (projectId == null) return 'No asignado';
+    
+    int? id;
+    if (projectId is int) {
+      id = projectId;
+    } else if (projectId is String) {
+      id = int.tryParse(projectId);
+    }
+    
+    if (id == null) return 'No asignado';
+    return _projectNames[id] ?? 'Proyecto ID: $id';
   }
 
   Map<String, List<Map<String, dynamic>>> getFilteredTasks() {
@@ -383,9 +428,8 @@ class _TaskScreenState extends State<TaskScreen> {
                                         Expanded(
                                           child: _buildInfoChip(
                                             Icons.work,
-                                            'ID Proyecto',
-                                            task['id_project']?.toString() ??
-                                                'No asignado',
+                                            'Proyecto',
+                                            _getProjectName(task['id_project']),
                                             Colors.teal,
                                           ),
                                         ),
