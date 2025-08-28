@@ -19,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoading = false;
   String? errorMessage;
   bool hasRememberedEmail = false;
+  bool _isPasswordVisible = false; // Nueva variable para controlar visibilidad
 
   @override
   void initState() {
@@ -223,9 +224,25 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderSide: BorderSide.none,
                       ),
                       prefixIcon: const Icon(Icons.lock, color: Colors.white),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Colors.white70,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                        tooltip: _isPasswordVisible
+                            ? 'Ocultar contraseña'
+                            : 'Mostrar contraseña',
+                      ),
                     ),
                     style: const TextStyle(color: Colors.white),
-                    obscureText: true,
+                    obscureText: !_isPasswordVisible, // Cambiar según el estado
                     validator: (value) => value == null || value.isEmpty
                         ? "Ingrese su contraseña"
                         : null,
@@ -330,6 +347,25 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       child: const Text("Registrar"),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/changePassword');
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        textStyle: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      child: const Text("¿Olvidaste tu contraseña?"),
                     ),
                   ),
                 ],

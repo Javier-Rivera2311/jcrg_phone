@@ -11,6 +11,7 @@ import 'package:jcrg_phone/screens/messages.dart';
 import 'package:jcrg_phone/screens/home.dart';
 import 'package:jcrg_phone/screens/report.dart';
 import 'package:jcrg_phone/screens/project.dart'; // <--- AGREGA ESTA LÍNEA
+import 'package:jcrg_phone/log/change_password.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
@@ -67,6 +68,7 @@ class MyApp extends StatelessWidget {
         '/projects': (context) =>
             const ProjectScreen(), // <--- AGREGA ESTA LÍNEA
         '/report': (context) => const ReportScreen(),
+        '/changePassword': (context) => const ChangePasswordScreen(),
       },
     );
   }
