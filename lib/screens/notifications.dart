@@ -2,16 +2,19 @@ import 'package:flutter/material.dart';
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60.0), // Altura estándar del AppBar
+        preferredSize:
+            const Size.fromHeight(60.0), // Altura estándar del AppBar
         child: ClipRRect(
           borderRadius: const BorderRadius.only(
-            bottomLeft: Radius.circular(20.0), // Bordes redondeados en la esquina inferior izquierda
-            bottomRight: Radius.circular(20.0), // Bordes redondeados en la esquina inferior derecha
+            bottomLeft: Radius.circular(
+                20.0), // Bordes redondeados en la esquina inferior izquierda
+            bottomRight: Radius.circular(
+                20.0), // Bordes redondeados en la esquina inferior derecha
           ),
           child: Container(
             decoration: const BoxDecoration(
@@ -28,10 +31,12 @@ class NotificationScreen extends StatelessWidget {
             child: AppBar(
               title: const Text(
                 'Notificaciones',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                style:
+                    TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
               ),
               centerTitle: true,
-              backgroundColor: Colors.transparent, // Fondo transparente para mostrar el degradado
+              backgroundColor: Colors
+                  .transparent, // Fondo transparente para mostrar el degradado
               elevation: 0, // Sin sombra
             ),
           ),
@@ -39,7 +44,7 @@ class NotificationScreen extends StatelessWidget {
       ),
       body: const Center(
         child: Text(
-          '¡Bienvenido a las notificaciones!',
+          'Disponible en la próxima actualización',
           style: TextStyle(fontSize: 20),
         ),
       ),
