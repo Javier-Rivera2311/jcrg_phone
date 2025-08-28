@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/openProject.dart';
-import '../widgets/formularyProject.dart'; // Agregar esta importación
+import '../widgets/formularyProject.dart';
+import '../widgets/project_tasks_screen.dart'; // Nueva importación
 
 class ProjectDetailScreen extends StatelessWidget {
   final Map<String, dynamic> project;
@@ -302,132 +303,188 @@ class ProjectDetailScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Botones de Acción
-                Row(
+                Column(
                   children: [
-                    Expanded(
+                    // Botón para ver tareas del proyecto
+                    SizedBox(
+                      width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: () async {
-                          final changed = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => FormularyProject(
-                                initialData: project,
-                                isEdit: true,
+                          final projectId = project['ID'] ?? project['id'];
+                          if (projectId != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ProjectTasksScreen(
+                                  projectId: projectId.toString(),
+                                  projectName:
+                                      project['Name_project'] ?? 'Proyecto',
+                                ),
                               ),
-                            ),
-                          );
-                          if (changed == true) {
-                            refreshParent();
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Error: ID del proyecto no encontrado'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
                           }
                         },
-                        icon: const Icon(Icons.edit),
-                        label: const Text("Editar"),
+                        icon: const Icon(Icons.assignment),
+                        label: const Text("Ver Tareas del Proyecto"),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          backgroundColor: Colors.green,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () async {
-                          final confirmed = await showDialog<bool>(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Confirmar eliminación'),
-                              content: const Text(
-                                  '¿Estás seguro de que deseas eliminar este proyecto?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
-                                  child: const Text('Cancelar'),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red),
-                                  child: const Text('Eliminar'),
-                                ),
-                              ],
-                            ),
-                          );
-
-                          if (confirmed == true) {
-                            try {
-                              // Debug para ver qué ID usar
-                              print('========== DEBUG DELETE PROJECT ==========');
-                              print('Project keys: ${project.keys.toList()}');
-                              print('ID: ${project['ID']}');
-                              print('id: ${project['id']}');
-                              print('=========================================');
-
-                              // Determinar el ID correcto
-                              final projectId = project['ID'] ?? project['id'];
-                              
-                              if (projectId == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Error: ID del proyecto no encontrado'),
-                                    backgroundColor: Colors.red,
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+                              final changed = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => FormularyProject(
+                                    initialData: project,
+                                    isEdit: true,
                                   ),
-                                );
-                                return;
-                              }
-
-                              print('Using projectId for delete: $projectId');
-
-                              final response = await http.delete(
-                                Uri.parse(
-                                    'https://backend-jcrgapp.onrender.com/user/deleteProject/$projectId'),
+                                ),
                               );
-
-                              print('Delete response status: ${response.statusCode}');
-                              print('Delete response body: ${response.body}');
-
-                              if (response.statusCode == 200 || response.statusCode == 204) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Proyecto eliminado correctamente'),
-                                    backgroundColor: Colors.green,
-                                  ),
-                                );
+                              if (changed == true) {
                                 refreshParent();
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Error al eliminar: ${response.statusCode}'),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
                               }
-                            } catch (e) {
-                              print('Delete error: $e');
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Error de conexión: $e'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
-                        },
-                        icon: const Icon(Icons.delete),
-                        label: const Text("Eliminar"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            },
+                            icon: const Icon(Icons.edit),
+                            label: const Text("Editar"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Confirmar eliminación'),
+                                  content: const Text(
+                                      '¿Estás seguro de que deseas eliminar este proyecto?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
+                                      child: const Text('Cancelar'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
+                                      style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.red),
+                                      child: const Text('Eliminar'),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirmed == true) {
+                                try {
+                                  // Debug para ver qué ID usar
+                                  print(
+                                      '========== DEBUG DELETE PROJECT ==========');
+                                  print(
+                                      'Project keys: ${project.keys.toList()}');
+                                  print('ID: ${project['ID']}');
+                                  print('id: ${project['id']}');
+                                  print(
+                                      '=========================================');
+
+                                  // Determinar el ID correcto
+                                  final projectId =
+                                      project['ID'] ?? project['id'];
+
+                                  if (projectId == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                            'Error: ID del proyecto no encontrado'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                    return;
+                                  }
+
+                                  print(
+                                      'Using projectId for delete: $projectId');
+
+                                  final response = await http.delete(
+                                    Uri.parse(
+                                        'https://backend-jcrgapp.onrender.com/user/deleteProject/$projectId'),
+                                  );
+
+                                  print(
+                                      'Delete response status: ${response.statusCode}');
+                                  print(
+                                      'Delete response body: ${response.body}');
+
+                                  if (response.statusCode == 200 ||
+                                      response.statusCode == 204) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                            'Proyecto eliminado correctamente'),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                    refreshParent();
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                            'Error al eliminar: ${response.statusCode}'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  print('Delete error: $e');
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Error de conexión: $e'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                            icon: const Icon(Icons.delete),
+                            label: const Text("Eliminar"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
