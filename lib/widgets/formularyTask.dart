@@ -17,8 +17,10 @@ class _FormularyTaskState extends State<FormularyTask> {
 
   List<String> _workersList = [];
   List<Map<String, dynamic>> _categoriesList = [];
+  List<Map<String, dynamic>> _projectsList = [];
 
   String? _selectedCategoryId;
+  String? _selectedProjectId;
   List<String> _selectedWorkers = [];
 
   @override
@@ -26,6 +28,7 @@ class _FormularyTaskState extends State<FormularyTask> {
     super.initState();
     fetchWorkers();
     fetchCategories();
+    fetchProjects();
   }
 
   Future<void> fetchWorkers() async {
@@ -55,6 +58,26 @@ class _FormularyTaskState extends State<FormularyTask> {
     }
   }
 
+  Future<void> fetchProjects() async {
+    final response = await http
+        .get(Uri.parse('https://backend-jcrgapp.onrender.com/user/ProjectTask'));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        // Ajustar según la estructura real de la respuesta
+        if (data is List) {
+          _projectsList = List<Map<String, dynamic>>.from(data);
+        } else if (data is Map && data.containsKey('projects')) {
+          _projectsList = List<Map<String, dynamic>>.from(data['projects']);
+        } else if (data is Map && data.containsKey('meetings')) {
+          _projectsList = List<Map<String, dynamic>>.from(data['meetings']);
+        } else {
+          _projectsList = [];
+        }
+      });
+    }
+  }
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -65,22 +88,27 @@ class _FormularyTaskState extends State<FormularyTask> {
 
   Future<void> submitForm() async {
     final url = Uri.parse('https://backend-jcrgapp.onrender.com/user/addTask');
-    // Buscar el nombre de la categoría seleccionada
-    final selectedCategory = _categoriesList.firstWhere(
-      (cat) => cat['id'].toString() == _selectedCategoryId,
-      orElse: () => {},
-    );
-    final selectedCategoryName = selectedCategory['name'] ?? '';
-
+    
+    // Buscar el nombre de la categoría basado en el ID seleccionado
+    String? categoryName;
+    if (_selectedCategoryId != null) {
+      final selectedCategory = _categoriesList.firstWhere(
+        (cat) => cat['id'].toString() == _selectedCategoryId,
+        orElse: () => {},
+      );
+      categoryName = selectedCategory['name'];
+    }
+    
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
+        "id_project": _selectedProjectId,
         "title": _titleController.text,
-        "description": _descriptionController.text,
-        "date_finish": _dateFinishController.text,
+        "date_finish": "${_dateFinishController.text}T00:00:00.000Z",
         "workers": _selectedWorkers.join(', '),
-        "category_name": selectedCategoryName,
+        "description": _descriptionController.text,
+        "category_name": categoryName, // Cambiado de category_id a category_name
       }),
     );
 
@@ -94,11 +122,14 @@ class _FormularyTaskState extends State<FormularyTask> {
       _dateFinishController.clear();
       setState(() {
         _selectedCategoryId = null;
+        _selectedProjectId = null;
         _selectedWorkers = [];
       });
     } else {
+      // Agregar más información de debug
+      print('Error response: ${response.body}');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al crear la tarea')),
+        SnackBar(content: Text('Error al crear la tarea: ${response.statusCode}')),
       );
     }
   }
@@ -176,6 +207,25 @@ class _FormularyTaskState extends State<FormularyTask> {
                     validator: (value) => value == null || value.isEmpty
                         ? 'Seleccione la fecha'
                         : null,
+                  ),
+                  const SizedBox(height: 14),
+                  DropdownButtonFormField<String>(
+                    value: _selectedProjectId,
+                    decoration: const InputDecoration(
+                      labelText: 'Proyecto',
+                      prefixIcon: Icon(Icons.work),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: _projectsList.map((project) {
+                      return DropdownMenuItem<String>(
+                        value: project['id'].toString(),
+                        child: Text(project['Name_project'] ?? 'Sin nombre'),
+                      );
+                    }).toList(),
+                    onChanged: (value) =>
+                        setState(() => _selectedProjectId = value),
+                    validator: (value) =>
+                        value == null ? 'Seleccione un proyecto' : null,
                   ),
                   const SizedBox(height: 14),
                   GestureDetector(

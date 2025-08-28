@@ -16,11 +16,13 @@ class _TaskScreenState extends State<TaskScreen> {
   String _searchQuery = '';
   List<Map<String, dynamic>> _allTasks = [];
   String _selectedCategory = '';
+  Map<int, String> _projectNames = {}; // Nuevo mapa para nombres de proyectos
 
   @override
   void initState() {
     super.initState();
     fetchTasks();
+    fetchProjectNames(); // Nueva llamada
   }
 
   Future<void> fetchTasks() async {
@@ -49,6 +51,49 @@ class _TaskScreenState extends State<TaskScreen> {
     }
   }
 
+  Future<void> fetchProjectNames() async {
+    try {
+      final response = await http.get(
+          Uri.parse('https://backend-jcrgapp.onrender.com/user/NameProjects'));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          final List projects = data['projects'];
+          Map<int, String> projectMap = {};
+          
+          for (var project in projects) {
+            final int id = project['id'];
+            final String name = project['Name_project'] ?? 'Sin nombre';
+            projectMap[id] = name;
+          }
+          
+          if (mounted) {
+            setState(() {
+              _projectNames = projectMap;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      print('Error fetching project names: $e');
+    }
+  }
+
+  String _getProjectName(dynamic projectId) {
+    if (projectId == null) return 'No asignado';
+    
+    int? id;
+    if (projectId is int) {
+      id = projectId;
+    } else if (projectId is String) {
+      id = int.tryParse(projectId);
+    }
+    
+    if (id == null) return 'No asignado';
+    return _projectNames[id] ?? 'Proyecto ID: $id';
+  }
+
   Map<String, List<Map<String, dynamic>>> getFilteredTasks() {
     if (_searchQuery.isEmpty) return groupedTasks;
 
@@ -72,6 +117,7 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   List<Map<String, dynamic>> getFilteredTasksByCategory() {
+    // Si no hay categoría seleccionada, devolver lista vacía para mostrar vista por categorías
     if (_selectedCategory.isEmpty) return [];
 
     List<Map<String, dynamic>> filtered = _allTasks.where((task) {
@@ -113,11 +159,6 @@ class _TaskScreenState extends State<TaskScreen> {
     final categories = getAvailableCategories();
     final filteredTasks = getFilteredTasksByCategory();
     final isWide = MediaQuery.of(context).size.width > 600;
-
-    // Seleccionar primera categoría si no hay ninguna seleccionada
-    if (_selectedCategory.isEmpty && categories.isNotEmpty) {
-      _selectedCategory = categories.first;
-    }
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -231,220 +272,453 @@ class _TaskScreenState extends State<TaskScreen> {
             ),
           ),
           Expanded(
-            child: filteredTasks.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.category,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _selectedCategory.isEmpty
-                              ? 'No hay categorías disponibles'
-                              : 'No hay tareas en $_selectedCategory',
-                          style:
-                              const TextStyle(fontSize: 18, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.only(
-                      left: 12,
-                      right: 12,
-                      top: 12,
-                      bottom: 80,
-                    ),
-                    itemCount: filteredTasks.length,
-                    itemBuilder: (context, index) {
-                      final task = filteredTasks[index];
-                      final categoryColor =
-                          _getCategoryColor(_selectedCategory);
-                      final stateColor = _getTaskStateColor(task['state']);
-
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: GestureDetector(
-                          onTap: () async {
-                            final changed = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => TaskDetailScreen(task: task),
-                              ),
-                            );
-                            if (changed == true) {
-                              fetchTasks();
-                            }
-                          },
-                          child: Card(
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(
-                                color: categoryColor.withOpacity(0.6),
-                                width: 2,
-                              ),
+            child: _selectedCategory.isEmpty
+                ? // Mostrar vista agrupada por categorías
+                getFilteredTasks().isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.assignment,
+                              size: 64,
+                              color: Colors.grey,
                             ),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                color:
-                                    _getTaskStateBackgroundColor(task['state']),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                            const SizedBox(height: 16),
+                            Text(
+                              'No hay tareas disponibles',
+                              style: const TextStyle(fontSize: 18, color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.only(
+                          left: 12,
+                          right: 12,
+                          top: 12,
+                          bottom: 80,
+                        ),
+                        itemCount: getFilteredTasks().keys.length,
+                        itemBuilder: (context, index) {
+                          final category = getFilteredTasks().keys.toList()[index];
+                          final categoryTasks = getFilteredTasks()[category]!;
+                          final categoryColor = _getCategoryColor(category);
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                child: Row(
                                   children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(8),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                categoryColor.withOpacity(0.1),
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          child: Icon(
-                                            _getTaskStateIcon(task['state']),
-                                            color: stateColor,
-                                            size: 20,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                task['title'] ?? 'Sin título',
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 8,
-                                                        vertical: 4),
-                                                decoration: BoxDecoration(
-                                                  color: stateColor
-                                                      .withOpacity(0.2),
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                                child: Text(
-                                                  task['state'] ?? 'Sin estado',
-                                                  style: TextStyle(
-                                                    color: stateColor,
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: categoryColor.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        Icons.category,
+                                        color: categoryColor,
+                                        size: 20,
+                                      ),
                                     ),
-                                    const SizedBox(height: 16),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: _buildInfoChip(
-                                            Icons.calendar_today,
-                                            'Fecha límite',
-                                            _formatDate(task['date_finish']),
-                                            Colors.orange,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: _buildInfoChip(
-                                            Icons.people,
-                                            'Trabajadores',
-                                            task['workers'] ?? 'No asignados',
-                                            Colors.purple,
-                                          ),
-                                        ),
-                                      ],
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      category,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: categoryColor,
+                                      ),
                                     ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: _buildInfoChip(
-                                            Icons.work,
-                                            'ID Proyecto',
-                                            task['id_project']?.toString() ??
-                                                'No asignado',
-                                            Colors.teal,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    if (task['description'] != null &&
-                                        task['description']
-                                            .toString()
-                                            .isNotEmpty) ...[
-                                      const SizedBox(height: 12),
-                                      Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.7),
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            const Row(
-                                              children: [
-                                                Icon(Icons.description,
-                                                    size: 16,
-                                                    color: Colors.grey),
-                                                SizedBox(width: 4),
-                                                Text(
-                                                  'Descripción',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.w500,
-                                                    fontSize: 12,
-                                                    color: Colors.grey,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              task['description'],
-                                              style:
-                                                  const TextStyle(fontSize: 13),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ],
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: categoryColor.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        '${categoryTasks.length}',
+                                        style: TextStyle(
+                                          color: categoryColor,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
                                         ),
                                       ),
-                                    ],
+                                    ),
                                   ],
                                 ),
                               ),
+                              ...categoryTasks.map((task) {
+                                final stateColor = _getTaskStateColor(task['state']);
+
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                      final changed = await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => TaskDetailScreen(task: task),
+                                        ),
+                                      );
+                                      if (changed == true) {
+                                        fetchTasks();
+                                      }
+                                    },
+                                    child: Card(
+                                      elevation: 4,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        side: BorderSide(
+                                          color: categoryColor.withOpacity(0.6),
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(12),
+                                          color: _getTaskStateBackgroundColor(task['state']),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(16.0),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Container(
+                                                    padding: const EdgeInsets.all(8),
+                                                    decoration: BoxDecoration(
+                                                      color: categoryColor.withOpacity(0.1),
+                                                      borderRadius: BorderRadius.circular(8),
+                                                    ),
+                                                    child: Icon(
+                                                      _getTaskStateIcon(task['state']),
+                                                      color: stateColor,
+                                                      size: 20,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 12),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          task['title'] ?? 'Sin título',
+                                                          style: const TextStyle(
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 16,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(height: 4),
+                                                        Container(
+                                                          padding: const EdgeInsets.symmetric(
+                                                              horizontal: 8, vertical: 4),
+                                                          decoration: BoxDecoration(
+                                                            color: stateColor.withOpacity(0.2),
+                                                            borderRadius: BorderRadius.circular(12),
+                                                          ),
+                                                          child: Text(
+                                                            task['state'] ?? 'Sin estado',
+                                                            style: TextStyle(
+                                                              color: stateColor,
+                                                              fontSize: 12,
+                                                              fontWeight: FontWeight.w500,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 16),
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: _buildInfoChip(
+                                                      Icons.calendar_today,
+                                                      'Fecha límite',
+                                                      _formatDate(task['date_finish']),
+                                                      Colors.orange,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Expanded(
+                                                    child: _buildInfoChip(
+                                                      Icons.people,
+                                                      'Trabajadores',
+                                                      task['workers'] ?? 'No asignados',
+                                                      Colors.purple,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: _buildInfoChip(
+                                                      Icons.work,
+                                                      'Proyecto',
+                                                      _getProjectName(task['id_project']),
+                                                      Colors.teal,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              if (task['description'] != null &&
+                                                  task['description'].toString().isNotEmpty) ...[
+                                                const SizedBox(height: 12),
+                                                Container(
+                                                  width: double.infinity,
+                                                  padding: const EdgeInsets.all(12),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white.withOpacity(0.7),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      const Row(
+                                                        children: [
+                                                          Icon(Icons.description,
+                                                              size: 16, color: Colors.grey),
+                                                          SizedBox(width: 4),
+                                                          Text(
+                                                            'Descripción',
+                                                            style: TextStyle(
+                                                              fontWeight: FontWeight.w500,
+                                                              fontSize: 12,
+                                                              color: Colors.grey,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      Text(
+                                                        task['description'],
+                                                        style: const TextStyle(fontSize: 13),
+                                                        maxLines: 2,
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                              const SizedBox(height: 16),
+                            ],
+                          );
+                        },
+                      )
+                : // Mostrar tareas de la categoría seleccionada
+                filteredTasks.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.category,
+                              size: 64,
+                              color: Colors.grey,
                             ),
-                          ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No hay tareas en $_selectedCategory',
+                              style: const TextStyle(fontSize: 18, color: Colors.grey),
+                            ),
+                          ],
                         ),
-                      );
-                    },
-                  ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.only(
+                          left: 12,
+                          right: 12,
+                          top: 12,
+                          bottom: 80,
+                        ),
+                        itemCount: filteredTasks.length,
+                        itemBuilder: (context, index) {
+                          final task = filteredTasks[index];
+                          final categoryColor = _getCategoryColor(_selectedCategory);
+                          final stateColor = _getTaskStateColor(task['state']);
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: GestureDetector(
+                              onTap: () async {
+                                final changed = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => TaskDetailScreen(task: task),
+                                  ),
+                                );
+                                if (changed == true) {
+                                  fetchTasks();
+                                }
+                              },
+                              child: Card(
+                                elevation: 4,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  side: BorderSide(
+                                    color: categoryColor.withOpacity(0.6),
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    color: _getTaskStateBackgroundColor(task['state']),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: categoryColor.withOpacity(0.1),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Icon(
+                                                _getTaskStateIcon(task['state']),
+                                                color: stateColor,
+                                                size: 20,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    task['title'] ?? 'Sin título',
+                                                    style: const TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(
+                                                        horizontal: 8, vertical: 4),
+                                                    decoration: BoxDecoration(
+                                                      color: stateColor.withOpacity(0.2),
+                                                      borderRadius: BorderRadius.circular(12),
+                                                    ),
+                                                    child: Text(
+                                                      task['state'] ?? 'Sin estado',
+                                                      style: TextStyle(
+                                                        color: stateColor,
+                                                        fontSize: 12,
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: _buildInfoChip(
+                                                Icons.calendar_today,
+                                                'Fecha límite',
+                                                _formatDate(task['date_finish']),
+                                                Colors.orange,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: _buildInfoChip(
+                                                Icons.people,
+                                                'Trabajadores',
+                                                task['workers'] ?? 'No asignados',
+                                                Colors.purple,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: _buildInfoChip(
+                                                Icons.work,
+                                                'Proyecto',
+                                                _getProjectName(task['id_project']),
+                                                Colors.teal,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        if (task['description'] != null &&
+                                            task['description'].toString().isNotEmpty) ...[
+                                          const SizedBox(height: 12),
+                                          Container(
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withOpacity(0.7),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                const Row(
+                                                  children: [
+                                                    Icon(Icons.description,
+                                                        size: 16, color: Colors.grey),
+                                                    SizedBox(width: 4),
+                                                    Text(
+                                                      'Descripción',
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight.w500,
+                                                        fontSize: 12,
+                                                        color: Colors.grey,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  task['description'],
+                                                  style: const TextStyle(fontSize: 13),
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
           ),
         ],
       ),

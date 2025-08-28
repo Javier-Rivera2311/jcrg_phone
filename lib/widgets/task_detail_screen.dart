@@ -2,10 +2,66 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class TaskDetailScreen extends StatelessWidget {
+class TaskDetailScreen extends StatefulWidget {
   final Map<String, dynamic> task;
 
   const TaskDetailScreen({super.key, required this.task});
+
+  @override
+  State<TaskDetailScreen> createState() => _TaskDetailScreenState();
+}
+
+class _TaskDetailScreenState extends State<TaskDetailScreen> {
+  Map<int, String> _projectNames = {};
+
+  @override
+  void initState() {
+    super.initState();
+    fetchProjectNames();
+  }
+
+  Future<void> fetchProjectNames() async {
+    try {
+      final response = await http.get(
+          Uri.parse('https://backend-jcrgapp.onrender.com/user/NameProjects'));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          final List projects = data['projects'];
+          Map<int, String> projectMap = {};
+          
+          for (var project in projects) {
+            final int id = project['id'];
+            final String name = project['Name_project'] ?? 'Sin nombre';
+            projectMap[id] = name;
+          }
+          
+          if (mounted) {
+            setState(() {
+              _projectNames = projectMap;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      print('Error fetching project names: $e');
+    }
+  }
+
+  String _getProjectName(dynamic projectId) {
+    if (projectId == null) return 'No asignado';
+    
+    int? id;
+    if (projectId is int) {
+      id = projectId;
+    } else if (projectId is String) {
+      id = int.tryParse(projectId);
+    }
+    
+    if (id == null) return 'No asignado';
+    return _projectNames[id] ?? 'Proyecto ID: $id';
+  }
 
   String _formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) return 'No definida';
@@ -53,18 +109,18 @@ class TaskDetailScreen extends StatelessWidget {
       }
     }
 
-    final stateColor = _getStateColor(task['state']);
-    final stateIcon = _getStateIcon(task['state']);
-    final isCompleted = task['state'].toLowerCase() == 'completada';
-    final taskDate = task['date_finish'] != null
-        ? DateTime.parse(task['date_finish'])
+    final stateColor = _getStateColor(widget.task['state']);
+    final stateIcon = _getStateIcon(widget.task['state']);
+    final isCompleted = widget.task['state'].toLowerCase() == 'completada';
+    final taskDate = widget.task['date_finish'] != null
+        ? DateTime.parse(widget.task['date_finish'])
         : null;
     final isOverdue =
         taskDate != null && taskDate.isBefore(DateTime.now()) && !isCompleted;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(task['title'] ?? 'Tarea'),
+        title: Text(widget.task['title'] ?? 'Tarea'),
         backgroundColor: stateColor,
         foregroundColor: Colors.white,
       ),
@@ -101,7 +157,7 @@ class TaskDetailScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          task['title'] ?? 'Sin título',
+                          widget.task['title'] ?? 'Sin título',
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -126,7 +182,7 @@ class TaskDetailScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                task['state'] ?? 'Sin estado',
+                                widget.task['state'] ?? 'Sin estado',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w500,
@@ -175,21 +231,21 @@ class TaskDetailScreen extends StatelessWidget {
                   Colors.blue,
                   [
                     _buildInfoRow(Icons.category, 'Categoría',
-                        task['category'] ?? 'Sin categoría'),
-                    _buildInfoRow(Icons.work, 'ID Proyecto',
-                        task['id_project']?.toString() ?? 'No asignado'),
+                        widget.task['category'] ?? 'Sin categoría'),
+                    _buildInfoRow(Icons.work, 'Proyecto',
+                        _getProjectName(widget.task['id_project'])),
                     _buildInfoRow(Icons.people, 'Trabajadores',
-                        task['workers'] ?? 'No asignados'),
+                        widget.task['workers'] ?? 'No asignados'),
                     _buildInfoRow(Icons.calendar_today, 'Fecha de finalización',
-                        _formatDate(task['date_finish'])),
+                        _formatDate(widget.task['date_finish'])),
                   ],
                 ),
 
                 const SizedBox(height: 16),
 
                 // Descripción
-                if (task['description'] != null &&
-                    task['description'].toString().isNotEmpty)
+                if (widget.task['description'] != null &&
+                    widget.task['description'].toString().isNotEmpty)
                   Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(
@@ -224,7 +280,7 @@ class TaskDetailScreen extends StatelessWidget {
                               border: Border.all(color: Colors.grey.shade200),
                             ),
                             child: Text(
-                              task['description'],
+                              widget.task['description'],
                               style: const TextStyle(fontSize: 16),
                             ),
                           ),
@@ -236,18 +292,18 @@ class TaskDetailScreen extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 // Información del Sistema
-                if (task['created_at'] != null || task['updated_at'] != null)
+                if (widget.task['created_at'] != null || widget.task['updated_at'] != null)
                   _buildInfoSection(
                     'Información del Sistema',
                     Icons.settings,
                     Colors.grey,
                     [
-                      if (task['created_at'] != null)
+                      if (widget.task['created_at'] != null)
                         _buildInfoRow(Icons.date_range, 'Creada',
-                            _formatDate(task['created_at'])),
-                      if (task['updated_at'] != null)
+                            _formatDate(widget.task['created_at'])),
+                      if (widget.task['updated_at'] != null)
                         _buildInfoRow(Icons.update, 'Actualizada',
-                            _formatDate(task['updated_at'])),
+                            _formatDate(widget.task['updated_at'])),
                     ],
                   ),
 
@@ -262,7 +318,7 @@ class TaskDetailScreen extends StatelessWidget {
                           String? nuevoEstado = await showDialog<String>(
                             context: context,
                             builder: (context) {
-                              String? selected = task['state'];
+                              String? selected = widget.task['state'];
                               return AlertDialog(
                                 title: const Text("Cambiar estado"),
                                 content: StatefulBuilder(
@@ -320,13 +376,13 @@ class TaskDetailScreen extends StatelessWidget {
                           );
 
                           if (nuevoEstado != null &&
-                              nuevoEstado != task['state']) {
+                              nuevoEstado != widget.task['state']) {
                             final response = await http.put(
                               Uri.parse(
                                   'https://backend-jcrgapp.onrender.com/user/Task/state'),
                               headers: {'Content-Type': 'application/json'},
                               body: json.encode(
-                                  {"id": task['ID'], "state": nuevoEstado}),
+                                  {"id": widget.task['ID'], "state": nuevoEstado}),
                             );
 
                             if (response.statusCode == 200) {
@@ -386,7 +442,7 @@ class TaskDetailScreen extends StatelessWidget {
                           if (confirmed == true) {
                             final response = await http.delete(
                               Uri.parse(
-                                  'https://backend-jcrgapp.onrender.com/user/Task/${task['ID']}'),
+                                  'https://backend-jcrgapp.onrender.com/user/Task/${widget.task['ID']}'),
                             );
 
                             if (response.statusCode == 200) {
