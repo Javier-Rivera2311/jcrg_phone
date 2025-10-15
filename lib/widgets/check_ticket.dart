@@ -83,6 +83,28 @@ class _CheckTicketViewState extends State<CheckTicketView> {
     }
   }
 
+  Color _getTypeColor(String? type) {
+    switch (type?.toLowerCase()) {
+      case 'publico':
+        return Colors.blue;
+      case 'privado':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getTypeIcon(String? type) {
+    switch (type?.toLowerCase()) {
+      case 'publico':
+        return Icons.public;
+      case 'privado':
+        return Icons.lock;
+      default:
+        return Icons.help;
+    }
+  }
+
   List<dynamic> getFilteredTickets(List<dynamic> tickets, String status) {
     // Filtrar por estado
     List<dynamic> statusFiltered = tickets.where((ticket) {
@@ -90,7 +112,8 @@ class _CheckTicketViewState extends State<CheckTicketView> {
         case 'abierto':
           return (ticket['status'] ?? '').toString().toLowerCase() == 'abierto';
         case 'en progreso':
-          return (ticket['status'] ?? '').toString().toLowerCase() == 'en progreso';
+          return (ticket['status'] ?? '').toString().toLowerCase() ==
+              'en progreso';
         case 'cerrado':
           return (ticket['status'] ?? '').toString().toLowerCase() == 'cerrado';
         default:
@@ -105,19 +128,23 @@ class _CheckTicketViewState extends State<CheckTicketView> {
     return statusFiltered.where((ticket) {
       final title = (ticket['title'] ?? '').toString().toLowerCase();
       final priority = (ticket['priority'] ?? '').toString().toLowerCase();
-      final department = (ticket['department_name'] ?? '').toString().toLowerCase();
+      final department =
+          (ticket['department_name'] ?? '').toString().toLowerCase();
       final worker = (ticket['worker_name'] ?? '').toString().toLowerCase();
+      final type = (ticket['type'] ?? '').toString().toLowerCase();
 
       return title.contains(query) ||
           priority.contains(query) ||
           department.contains(query) ||
-          worker.contains(query);
+          worker.contains(query) ||
+          type.contains(query);
     }).toList();
   }
 
   void showTicketDetails(BuildContext context, Map<String, dynamic> ticket) {
     String selectedStatus = ticket['status'] ?? 'Abierto';
     String selectedPriority = ticket['priority'] ?? 'Baja';
+    String selectedType = ticket['type'] ?? 'publico'; // Nuevo campo type
     String? selectedResolutionDate = ticket['resolution_date'];
 
     TextEditingController resolutionDateController = TextEditingController(
@@ -179,6 +206,27 @@ class _CheckTicketViewState extends State<CheckTicketView> {
                         if (value != null) {
                           setStateDialog(() {
                             selectedPriority = value;
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    const Text('Tipo: '),
+                    DropdownButton<String>(
+                      value: selectedType,
+                      items: const [
+                        DropdownMenuItem(
+                            value: 'publico', child: Text('Público')),
+                        DropdownMenuItem(
+                            value: 'privado', child: Text('Privado')),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          setStateDialog(() {
+                            selectedType = value;
                           });
                         }
                       },
@@ -251,6 +299,7 @@ class _CheckTicketViewState extends State<CheckTicketView> {
                   ticket,
                   selectedStatus,
                   selectedPriority,
+                  selectedType,
                   selectedResolutionDate,
                   responseController.text,
                 );
@@ -268,6 +317,7 @@ class _CheckTicketViewState extends State<CheckTicketView> {
     Map<String, dynamic> ticket,
     String status,
     String priority,
+    String type,
     String? resolutionDate,
     String supportResponse,
   ) async {
@@ -279,6 +329,7 @@ class _CheckTicketViewState extends State<CheckTicketView> {
         'title': ticket['title'],
         'status': status,
         'priority': priority,
+        'type': type,
         'resolution_date': resolutionDate,
         'support_response': supportResponse,
       }),
@@ -301,6 +352,8 @@ class _CheckTicketViewState extends State<CheckTicketView> {
     final statusColor = _getStatusColor(ticket['status']);
     final statusIcon = _getStatusIcon(ticket['status']);
     final priorityColor = _getPriorityColor(ticket['priority']);
+    final typeColor = _getTypeColor(ticket['type']);
+    final typeIcon = _getTypeIcon(ticket['type']);
 
     return Card(
       elevation: 4,
@@ -347,17 +400,21 @@ class _CheckTicketViewState extends State<CheckTicketView> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                    const Icon(Icons.arrow_forward_ios,
+                        size: 16, color: Colors.grey),
                   ],
                 ),
-                
+
                 const SizedBox(height: 8),
 
-                // Estado y prioridad (movido aquí después del título)
-                Row(
+                // Estado, prioridad y tipo
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: statusColor.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
@@ -371,9 +428,9 @@ class _CheckTicketViewState extends State<CheckTicketView> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: priorityColor.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
@@ -385,6 +442,33 @@ class _CheckTicketViewState extends State<CheckTicketView> {
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: typeColor.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            typeIcon,
+                            size: 12,
+                            color: typeColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            ticket['type'] ?? 'Sin tipo',
+                            style: TextStyle(
+                              color: typeColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -440,7 +524,8 @@ class _CheckTicketViewState extends State<CheckTicketView> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.description, size: 16, color: Colors.grey.shade600),
+                            Icon(Icons.description,
+                                size: 16, color: Colors.grey.shade600),
                             const SizedBox(width: 4),
                             Text(
                               'Descripción',
@@ -465,7 +550,9 @@ class _CheckTicketViewState extends State<CheckTicketView> {
                 ],
 
                 // Respuesta de soporte si existe
-                if ((ticket['support_response'] ?? '').toString().isNotEmpty) ...[
+                if ((ticket['support_response'] ?? '')
+                    .toString()
+                    .isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Container(
                     width: double.infinity,
@@ -479,7 +566,8 @@ class _CheckTicketViewState extends State<CheckTicketView> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.support, size: 16, color: Colors.blue.shade600),
+                            Icon(Icons.support,
+                                size: 16, color: Colors.blue.shade600),
                             const SizedBox(width: 4),
                             Text(
                               'Respuesta de Soporte',
@@ -510,7 +598,8 @@ class _CheckTicketViewState extends State<CheckTicketView> {
     );
   }
 
-  Widget _buildInfoChip(IconData icon, String label, String value, Color color, {bool fullWidth = false}) {
+  Widget _buildInfoChip(IconData icon, String label, String value, Color color,
+      {bool fullWidth = false}) {
     return Container(
       width: fullWidth ? double.infinity : null,
       padding: const EdgeInsets.all(8),
@@ -579,7 +668,8 @@ class _CheckTicketViewState extends State<CheckTicketView> {
               elevation: 0,
               title: const Text(
                 'Verificar Tickets',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                style:
+                    TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
               ),
               centerTitle: true,
             ),
@@ -603,9 +693,8 @@ class _CheckTicketViewState extends State<CheckTicketView> {
                     icon: const Icon(Icons.error_outline),
                     label: const Text('Abiertos'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedTab == 0
-                          ? Colors.red
-                          : Colors.grey[300],
+                      backgroundColor:
+                          _selectedTab == 0 ? Colors.red : Colors.grey[300],
                       foregroundColor:
                           _selectedTab == 0 ? Colors.white : Colors.black54,
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -626,9 +715,8 @@ class _CheckTicketViewState extends State<CheckTicketView> {
                     icon: const Icon(Icons.autorenew),
                     label: const Text('En Progreso'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedTab == 1
-                          ? Colors.orange
-                          : Colors.grey[300],
+                      backgroundColor:
+                          _selectedTab == 1 ? Colors.orange : Colors.grey[300],
                       foregroundColor:
                           _selectedTab == 1 ? Colors.white : Colors.black54,
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -649,9 +737,8 @@ class _CheckTicketViewState extends State<CheckTicketView> {
                     icon: const Icon(Icons.check_circle),
                     label: const Text('Cerrados'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedTab == 2
-                          ? Colors.green
-                          : Colors.grey[300],
+                      backgroundColor:
+                          _selectedTab == 2 ? Colors.green : Colors.grey[300],
                       foregroundColor:
                           _selectedTab == 2 ? Colors.white : Colors.black54,
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -688,7 +775,8 @@ class _CheckTicketViewState extends State<CheckTicketView> {
                   hintText: 'Buscar tickets por título, estado, trabajador...',
                   prefixIcon: Icon(Icons.search, color: Colors.grey),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 14, horizontal: 20),
                 ),
                 onChanged: (value) {
                   setState(() {
@@ -738,7 +826,7 @@ class _CheckTicketViewState extends State<CheckTicketView> {
         }
 
         final allTickets = snapshot.data ?? [];
-        
+
         // Obtener tickets filtrados según la pestaña seleccionada
         String currentStatus = '';
         switch (_selectedTab) {
@@ -759,20 +847,26 @@ class _CheckTicketViewState extends State<CheckTicketView> {
           String emptyMessage = '';
           IconData emptyIcon = Icons.assignment;
           Color emptyColor = Colors.grey.shade400;
-          
+
           switch (_selectedTab) {
             case 0:
-              emptyMessage = _searchQuery.isNotEmpty ? 'No se encontraron tickets abiertos' : 'No hay tickets abiertos';
+              emptyMessage = _searchQuery.isNotEmpty
+                  ? 'No se encontraron tickets abiertos'
+                  : 'No hay tickets abiertos';
               emptyIcon = Icons.error_outline;
               emptyColor = Colors.red.shade300;
               break;
             case 1:
-              emptyMessage = _searchQuery.isNotEmpty ? 'No se encontraron tickets en progreso' : 'No hay tickets en progreso';
+              emptyMessage = _searchQuery.isNotEmpty
+                  ? 'No se encontraron tickets en progreso'
+                  : 'No hay tickets en progreso';
               emptyIcon = Icons.autorenew;
               emptyColor = Colors.orange.shade300;
               break;
             case 2:
-              emptyMessage = _searchQuery.isNotEmpty ? 'No se encontraron tickets cerrados' : 'No hay tickets cerrados';
+              emptyMessage = _searchQuery.isNotEmpty
+                  ? 'No se encontraron tickets cerrados'
+                  : 'No hay tickets cerrados';
               emptyIcon = Icons.check_circle;
               emptyColor = Colors.green.shade300;
               break;
@@ -800,8 +894,10 @@ class _CheckTicketViewState extends State<CheckTicketView> {
 
         // Ordenar por fecha de creación (más reciente primero)
         filteredTickets.sort((a, b) {
-          final aDate = DateTime.tryParse(a['creation_date'] ?? '') ?? DateTime(1970);
-          final bDate = DateTime.tryParse(b['creation_date'] ?? '') ?? DateTime(1970);
+          final aDate =
+              DateTime.tryParse(a['creation_date'] ?? '') ?? DateTime(1970);
+          final bDate =
+              DateTime.tryParse(b['creation_date'] ?? '') ?? DateTime(1970);
           return bDate.compareTo(aDate);
         });
 

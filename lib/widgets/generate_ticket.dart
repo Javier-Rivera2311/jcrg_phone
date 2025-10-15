@@ -114,6 +114,28 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
     }
   }
 
+  Color _getTypeColor(String? type) {
+    switch (type?.toLowerCase()) {
+      case 'publico':
+        return Colors.blue;
+      case 'privado':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getTypeIcon(String? type) {
+    switch (type?.toLowerCase()) {
+      case 'publico':
+        return Icons.public;
+      case 'privado':
+        return Icons.lock;
+      default:
+        return Icons.help;
+    }
+  }
+
   List<dynamic> getFilteredTickets(List<dynamic> tickets, String status) {
     // Filtrar por estado
     List<dynamic> statusFiltered = tickets.where((ticket) {
@@ -121,7 +143,8 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
         case 'abierto':
           return (ticket['status'] ?? '').toString().toLowerCase() == 'abierto';
         case 'en progreso':
-          return (ticket['status'] ?? '').toString().toLowerCase() == 'en progreso';
+          return (ticket['status'] ?? '').toString().toLowerCase() ==
+              'en progreso';
         case 'cerrado':
           return (ticket['status'] ?? '').toString().toLowerCase() == 'cerrado';
         default:
@@ -137,12 +160,15 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
       final title = (ticket['title'] ?? '').toString().toLowerCase();
       final status = (ticket['status'] ?? '').toString().toLowerCase();
       final priority = (ticket['priority'] ?? '').toString().toLowerCase();
-      final department = (ticket['department_name'] ?? '').toString().toLowerCase();
+      final department =
+          (ticket['department_name'] ?? '').toString().toLowerCase();
+      final type = (ticket['type'] ?? '').toString().toLowerCase();
 
       return title.contains(query) ||
           status.contains(query) ||
           priority.contains(query) ||
-          department.contains(query);
+          department.contains(query) ||
+          type.contains(query);
     }).toList();
   }
 
@@ -150,6 +176,8 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
     final statusColor = _getStatusColor(ticket['status']);
     final statusIcon = _getStatusIcon(ticket['status']);
     final priorityColor = _getPriorityColor(ticket['priority']);
+    final typeColor = _getTypeColor(ticket['type']);
+    final typeIcon = _getTypeIcon(ticket['type']);
 
     return Card(
       elevation: 4,
@@ -194,14 +222,17 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 8),
 
-              // Estado y prioridad (movido aquí después del título)
-              Row(
+              // Estado, prioridad y tipo
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: statusColor.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
@@ -215,9 +246,9 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: priorityColor.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
@@ -229,6 +260,33 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
+                    ),
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: typeColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          typeIcon,
+                          size: 12,
+                          color: typeColor,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          ticket['type'] ?? 'Sin tipo',
+                          style: TextStyle(
+                            color: typeColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -284,7 +342,8 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.support, size: 16, color: Colors.grey.shade600),
+                          Icon(Icons.support,
+                              size: 16, color: Colors.grey.shade600),
                           const SizedBox(width: 4),
                           Text(
                             'Respuesta de Soporte',
@@ -312,7 +371,8 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
     );
   }
 
-  Widget _buildInfoChip(IconData icon, String label, String value, Color color, {bool fullWidth = false}) {
+  Widget _buildInfoChip(IconData icon, String label, String value, Color color,
+      {bool fullWidth = false}) {
     return Container(
       width: fullWidth ? double.infinity : null,
       padding: const EdgeInsets.all(8),
@@ -358,7 +418,8 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => FormularyTicket(workerId: workerId, departmentId: departmentId),
+        builder: (_) =>
+            FormularyTicket(workerId: workerId, departmentId: departmentId),
       ),
     );
     if (result == true) {
@@ -397,7 +458,8 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
               elevation: 0,
               title: const Text(
                 'Reportar Problemas',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                style:
+                    TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
               ),
               centerTitle: true,
             ),
@@ -421,9 +483,8 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
                     icon: const Icon(Icons.error_outline),
                     label: const Text('Abiertos'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedTab == 0
-                          ? Colors.red
-                          : Colors.grey[300],
+                      backgroundColor:
+                          _selectedTab == 0 ? Colors.red : Colors.grey[300],
                       foregroundColor:
                           _selectedTab == 0 ? Colors.white : Colors.black54,
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -444,9 +505,8 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
                     icon: const Icon(Icons.autorenew),
                     label: const Text('En Progreso'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedTab == 1
-                          ? Colors.orange
-                          : Colors.grey[300],
+                      backgroundColor:
+                          _selectedTab == 1 ? Colors.orange : Colors.grey[300],
                       foregroundColor:
                           _selectedTab == 1 ? Colors.white : Colors.black54,
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -467,9 +527,8 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
                     icon: const Icon(Icons.check_circle),
                     label: const Text('Cerrados'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedTab == 2
-                          ? Colors.green
-                          : Colors.grey[300],
+                      backgroundColor:
+                          _selectedTab == 2 ? Colors.green : Colors.grey[300],
                       foregroundColor:
                           _selectedTab == 2 ? Colors.white : Colors.black54,
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -506,7 +565,8 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
                   hintText: 'Buscar tickets',
                   prefixIcon: Icon(Icons.search, color: Colors.grey),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 14, horizontal: 20),
                 ),
                 onChanged: (value) {
                   setState(() {
@@ -562,7 +622,7 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
         }
 
         final allTickets = snapshot.data ?? [];
-        
+
         // Obtener tickets filtrados según la pestaña seleccionada
         String currentStatus = '';
         switch (_selectedTab) {
@@ -583,20 +643,26 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
           String emptyMessage = '';
           IconData emptyIcon = Icons.assignment;
           Color emptyColor = Colors.grey.shade400;
-          
+
           switch (_selectedTab) {
             case 0:
-              emptyMessage = _searchQuery.isNotEmpty ? 'No se encontraron tickets abiertos' : 'No tienes tickets abiertos';
+              emptyMessage = _searchQuery.isNotEmpty
+                  ? 'No se encontraron tickets abiertos'
+                  : 'No tienes tickets abiertos';
               emptyIcon = Icons.error_outline;
               emptyColor = Colors.red.shade300;
               break;
             case 1:
-              emptyMessage = _searchQuery.isNotEmpty ? 'No se encontraron tickets en progreso' : 'No tienes tickets en progreso';
+              emptyMessage = _searchQuery.isNotEmpty
+                  ? 'No se encontraron tickets en progreso'
+                  : 'No tienes tickets en progreso';
               emptyIcon = Icons.autorenew;
               emptyColor = Colors.orange.shade300;
               break;
             case 2:
-              emptyMessage = _searchQuery.isNotEmpty ? 'No se encontraron tickets cerrados' : 'No tienes tickets cerrados';
+              emptyMessage = _searchQuery.isNotEmpty
+                  ? 'No se encontraron tickets cerrados'
+                  : 'No tienes tickets cerrados';
               emptyIcon = Icons.check_circle;
               emptyColor = Colors.green.shade300;
               break;

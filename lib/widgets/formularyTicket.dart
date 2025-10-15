@@ -22,11 +22,12 @@ class _FormularyTicketState extends State<FormularyTicket> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   String priority = 'Baja';
+  String type = 'publico'; // Nuevo campo type
 
   bool isLoading = false;
 
   Future<void> createTicket(
-      String title, String description, String priority) async {
+      String title, String description, String priority, String type) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
 
@@ -40,6 +41,7 @@ class _FormularyTicketState extends State<FormularyTicket> {
         'title': title,
         'description': description,
         'priority': priority,
+        'type': type, // Nuevo campo type
         'worker_id': widget.workerId,
         'department_id': widget.departmentId,
       }),
@@ -81,6 +83,28 @@ class _FormularyTicketState extends State<FormularyTicket> {
         return Icons.remove;
       case 'baja':
         return Icons.low_priority;
+      default:
+        return Icons.help;
+    }
+  }
+
+  Color _getTypeColor(String type) {
+    switch (type.toLowerCase()) {
+      case 'publico':
+        return Colors.blue;
+      case 'privado':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getTypeIcon(String type) {
+    switch (type.toLowerCase()) {
+      case 'publico':
+        return Icons.public;
+      case 'privado':
+        return Icons.lock;
       default:
         return Icons.help;
     }
@@ -286,6 +310,72 @@ class _FormularyTicketState extends State<FormularyTicket> {
                             ),
                             const SizedBox(height: 20),
 
+                            // Campo Tipo con diseño mejorado
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(15),
+                                border: Border.all(color: Colors.grey.shade300),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 4),
+                                child: DropdownButtonFormField<String>(
+                                  value: type,
+                                  decoration: InputDecoration(
+                                    labelText: 'Tipo de ticket',
+                                    prefixIcon: Icon(
+                                      _getTypeIcon(type),
+                                      color: _getTypeColor(type),
+                                    ),
+                                    border: InputBorder.none,
+                                    labelStyle:
+                                        TextStyle(color: Colors.grey.shade700),
+                                  ),
+                                  items: [
+                                    DropdownMenuItem(
+                                      value: 'publico',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.public,
+                                              color: Colors.blue, size: 20),
+                                          const SizedBox(width: 8),
+                                          const Text(
+                                              'Público - Visible para todos'),
+                                        ],
+                                      ),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'privado',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.lock,
+                                              color: Colors.orange, size: 20),
+                                          const SizedBox(width: 8),
+                                          const Text(
+                                              'Privado - Solo para administradores'),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                  onChanged: (value) {
+                                    if (value != null)
+                                      setState(() => type = value);
+                                  },
+                                  dropdownColor: Colors.white,
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+
                             // Campo Prioridad con diseño mejorado
                             Container(
                               decoration: BoxDecoration(
@@ -426,6 +516,7 @@ class _FormularyTicketState extends State<FormularyTicket> {
                                             titleController.text,
                                             descriptionController.text,
                                             priority,
+                                            type,
                                           );
                                           if (mounted) {
                                             setState(() => isLoading = false);
