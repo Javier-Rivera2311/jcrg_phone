@@ -49,7 +49,7 @@ cd jcrg_phone
 flutter pub get
 ```
 
-##▶️ Ejecución de la Aplicación
+## ▶️ Ejecución de la Aplicación
 # 1. Abre el proyecto en tu editor preferido
 # 2. Asegúrate de tener un dispositivo o emulador en ejecución
 # 3. Ejecuta la aplicación
@@ -72,15 +72,23 @@ flutter run
 ## ☁️ Despliegue
 
 # Compilación para Android
+```bash
 flutter build apk --release
-
+```
 # Compilación para Web
+```bash
 flutter build web
-
+```
 # Compilaciones de escritorio
+```bash
 flutter build windows
+```
+```bash
 flutter build macos
+```
+```bash
 flutter build linux
+```
 
 ## 🏗️ Backend Asociado
 El backend de esta aplicación está desarrollado en Node.js + Express + MySQL,
