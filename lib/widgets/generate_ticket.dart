@@ -13,13 +13,16 @@ class GenerateTicketView extends StatefulWidget {
 
 class _GenerateTicketViewState extends State<GenerateTicketView> {
   late Future<List<dynamic>> myTicketsFuture;
+  late Future<List<dynamic>> myPersonalTicketsFuture;
   String _searchQuery = '';
-  int _selectedTab = 0; // 0 para abiertos, 1 para en progreso, 2 para cerrados
+  int _selectedTab =
+      0; // 0 para abiertos, 1 para en progreso, 2 para cerrados, 3 para mis tickets personales
 
   @override
   void initState() {
     super.initState();
     myTicketsFuture = fetchMyTickets();
+    myPersonalTicketsFuture = fetchMyPersonalTickets();
   }
 
   Future<List<dynamic>> fetchMyTickets() async {
@@ -60,6 +63,46 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
       throw Exception('Acceso denegado (403): Token faltante o inválido.');
     } else {
       throw Exception('Error al cargar tus tickets (${response.statusCode})');
+    }
+  }
+
+  Future<List<dynamic>> fetchMyPersonalTickets() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      throw Exception('Token no disponible. Por favor inicie sesión.');
+    }
+
+    final response = await http.get(
+      Uri.parse('https://backend-jcrgapp.onrender.com/user/myTicketsPersonal'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      print('Respuesta myTicketsPersonal: $data');
+      if (data is List) {
+        return data;
+      } else if (data['data'] is List) {
+        return data['data'];
+      } else if (data['tickets'] is List) {
+        return data['tickets'];
+      } else if (data['data'] is Map) {
+        return [data['data']];
+      } else if (data['ticket'] != null) {
+        return [data['ticket']];
+      } else {
+        return [];
+      }
+    } else if (response.statusCode == 403) {
+      throw Exception('Acceso denegado (403): Token faltante o inválido.');
+    } else {
+      throw Exception(
+          'Error al cargar tus tickets personales (${response.statusCode})');
     }
   }
 
@@ -147,6 +190,8 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
               'en progreso';
         case 'cerrado':
           return (ticket['status'] ?? '').toString().toLowerCase() == 'cerrado';
+        case 'mis tickets':
+          return true; // Para "Mis Tickets" mostramos todos los tickets del usuario
         default:
           return true;
       }
@@ -163,12 +208,14 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
       final department =
           (ticket['department_name'] ?? '').toString().toLowerCase();
       final type = (ticket['type'] ?? '').toString().toLowerCase();
+      final id = (ticket['id'] ?? '').toString();
 
       return title.contains(query) ||
           status.contains(query) ||
           priority.contains(query) ||
           department.contains(query) ||
-          type.contains(query);
+          type.contains(query) ||
+          id.contains(query);
     }).toList();
   }
 
@@ -327,6 +374,45 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
                 fullWidth: true,
               ),
 
+              // Descripción detallada
+              if ((ticket['description'] ?? '').toString().isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.description,
+                              size: 16, color: Colors.blue.shade600),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Descripción',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12,
+                              color: Colors.blue.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        ticket['description'],
+                        style: const TextStyle(fontSize: 14, height: 1.4),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
               // Respuesta de soporte si existe
               if ((ticket['support_response'] ?? '').toString().isNotEmpty) ...[
                 const SizedBox(height: 12),
@@ -425,6 +511,7 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
     if (result == true) {
       setState(() {
         myTicketsFuture = fetchMyTickets();
+        myPersonalTicketsFuture = fetchMyPersonalTickets();
       });
     }
   }
@@ -471,72 +558,107 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
           // Botones de navegación por estado
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _selectedTab = 0;
-                      });
-                    },
-                    icon: const Icon(Icons.error_outline),
-                    label: const Text('Abiertos'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          _selectedTab == 0 ? Colors.red : Colors.grey[300],
-                      foregroundColor:
-                          _selectedTab == 0 ? Colors.white : Colors.black54,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                // Primera fila de botones
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _selectedTab = 0;
+                          });
+                        },
+                        icon: const Icon(Icons.error_outline),
+                        label: const Text('Abiertos'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              _selectedTab == 0 ? Colors.red : Colors.grey[300],
+                          foregroundColor:
+                              _selectedTab == 0 ? Colors.white : Colors.black54,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _selectedTab = 1;
+                          });
+                        },
+                        icon: const Icon(Icons.autorenew),
+                        label: const Text('En Progreso'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _selectedTab == 1
+                              ? Colors.orange
+                              : Colors.grey[300],
+                          foregroundColor:
+                              _selectedTab == 1 ? Colors.white : Colors.black54,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _selectedTab = 1;
-                      });
-                    },
-                    icon: const Icon(Icons.autorenew),
-                    label: const Text('En Progreso'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          _selectedTab == 1 ? Colors.orange : Colors.grey[300],
-                      foregroundColor:
-                          _selectedTab == 1 ? Colors.white : Colors.black54,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 8),
+                // Segunda fila de botones
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _selectedTab = 2;
+                          });
+                        },
+                        icon: const Icon(Icons.check_circle),
+                        label: const Text('Cerrados'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _selectedTab == 2
+                              ? Colors.green
+                              : Colors.grey[300],
+                          foregroundColor:
+                              _selectedTab == 2 ? Colors.white : Colors.black54,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _selectedTab = 2;
-                      });
-                    },
-                    icon: const Icon(Icons.check_circle),
-                    label: const Text('Cerrados'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          _selectedTab == 2 ? Colors.green : Colors.grey[300],
-                      foregroundColor:
-                          _selectedTab == 2 ? Colors.white : Colors.black54,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _selectedTab = 3;
+                          });
+                        },
+                        icon: const Icon(Icons.person),
+                        label: const Text('Mis Tickets'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _selectedTab == 3
+                              ? Colors.purple
+                              : Colors.grey[300],
+                          foregroundColor:
+                              _selectedTab == 3 ? Colors.white : Colors.black54,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
@@ -593,8 +715,12 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
   }
 
   Widget _buildTicketList() {
+    // Usar el future correcto según la pestaña seleccionada
+    Future<List<dynamic>> currentFuture =
+        _selectedTab == 3 ? myPersonalTicketsFuture : myTicketsFuture;
+
     return FutureBuilder<List<dynamic>>(
-      future: myTicketsFuture,
+      future: currentFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -635,6 +761,9 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
           case 2:
             currentStatus = 'cerrado';
             break;
+          case 3:
+            currentStatus = 'mis tickets';
+            break;
         }
 
         final filteredTickets = getFilteredTickets(allTickets, currentStatus);
@@ -665,6 +794,13 @@ class _GenerateTicketViewState extends State<GenerateTicketView> {
                   : 'No tienes tickets cerrados';
               emptyIcon = Icons.check_circle;
               emptyColor = Colors.green.shade300;
+              break;
+            case 3:
+              emptyMessage = _searchQuery.isNotEmpty
+                  ? 'No se encontraron tickets personales'
+                  : 'No tienes tickets personales';
+              emptyIcon = Icons.person;
+              emptyColor = Colors.purple.shade300;
               break;
           }
 
