@@ -6,6 +6,7 @@ import 'meetings.dart';
 import 'workers.dart';
 import 'notifications.dart';
 import 'project.dart';
+import 'proposals.dart';
 import 'report.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,6 +39,7 @@ class _HomePageState extends State<HomePage> {
       const WorkerScreen(),
       const NotificationScreen(),
       const MeetingScreen(), // Cambiado de ProjectScreen a MeetingScreen
+      const ProposalsScreen(), // Nueva pantalla de Propuestas
       const ReportScreen(),
     ];
   }
@@ -50,6 +52,7 @@ class _HomePageState extends State<HomePage> {
     Color(0xFF2962FF), // Azul eléctrico, personal
     Color(0xFF1976D2), // Azul vibrante, notificaciones
     Color(0xFF1565C0), // Azul más oscuro, reuniones
+    Color.fromARGB(255, 33, 150, 255), // Azul para propuestas
     Color.fromARGB(255, 255, 33, 33), // reportar problema
   ];
 
@@ -147,10 +150,18 @@ class _HomePageState extends State<HomePage> {
                     },
                   ),
                   ListTile(
+                    leading: const Icon(Icons.business_center),
+                    title: const Text('Propuestas'),
+                    onTap: () {
+                      setState(() => _currentIndex = 7);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
                     leading: const Icon(Icons.report),
                     title: const Text('Reportar problema'),
                     onTap: () {
-                      setState(() => _currentIndex = 7);
+                      setState(() => _currentIndex = 8); // Cambiado de 7 a 8
                       Navigator.pop(context);
                     },
                   ),
