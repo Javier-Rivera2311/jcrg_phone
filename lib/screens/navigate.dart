@@ -60,9 +60,16 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'JCRG',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        title: GestureDetector(
+          onTap: () {
+            setState(() {
+              _currentIndex = 0; // Navegar a Home
+            });
+          },
+          child: const Text(
+            'JCRG',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          ),
         ),
         centerTitle: true,
         backgroundColor: colors[_currentIndex],
