@@ -10,7 +10,8 @@ import 'package:jcrg_phone/screens/notifications.dart';
 import 'package:jcrg_phone/screens/messages.dart';
 import 'package:jcrg_phone/screens/home.dart';
 import 'package:jcrg_phone/screens/report.dart';
-import 'package:jcrg_phone/screens/project.dart'; // <--- AGREGA ESTA LÍNEA
+import 'package:jcrg_phone/screens/project.dart';
+import 'package:jcrg_phone/screens/proposals.dart'; // <--- NUEVA LÍNEA
 import 'package:jcrg_phone/log/change_password.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -67,6 +68,7 @@ class MyApp extends StatelessWidget {
         '/messages': (context) => const MessagesScreen(),
         '/projects': (context) =>
             const ProjectScreen(), // <--- AGREGA ESTA LÍNEA
+        '/proposals': (context) => const ProposalsScreen(),
         '/report': (context) => const ReportScreen(),
         '/changePassword': (context) => const ChangePasswordScreen(),
       },

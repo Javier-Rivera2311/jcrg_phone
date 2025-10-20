@@ -221,6 +221,8 @@ class _HomeState extends State<Home> {
                           buttonWidth, 4),
                       _buildButton(Icons.notifications, 'Notificaciones',
                           Color(0xFF1976D2), buttonWidth, 5),
+                      _buildButton(Icons.business_center, 'Propuestas',
+                          Color.fromARGB(255, 33, 150, 255), buttonWidth, 7),
                     ],
                   );
                 },
@@ -230,7 +232,7 @@ class _HomeState extends State<Home> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    widget.onNavigate?.call(7);
+                    widget.onNavigate?.call(8);
                   },
                   icon: const Icon(Icons.report_problem, color: Colors.white),
                   label: const Text('Reportar Problema'),
