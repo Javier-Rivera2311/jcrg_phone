@@ -182,7 +182,7 @@ class _ProposalsQuotesWidgetState extends State<ProposalsQuotesWidget> {
                     child: _buildInfoChip(
                       Icons.attach_money,
                       'Valor',
-                      '\$${proposal['value'] ?? '0'}',
+                      'CLP \$${proposal['value'] ?? '0'}',
                       Colors.blue,
                     ),
                   ),
@@ -458,6 +458,261 @@ class _ProposalsQuotesWidgetState extends State<ProposalsQuotesWidget> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showNewQuoteForm(context),
+        backgroundColor: Colors.green,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
     );
+  }
+
+  void _showNewQuoteForm(BuildContext context) {
+    final titleController = TextEditingController();
+    final clientController = TextEditingController();
+    final valueController = TextEditingController();
+    final descriptionController = TextEditingController();
+    final sentDateController = TextEditingController();
+    final responseDeadlineController = TextEditingController();
+    DateTime? selectedSentDate;
+    DateTime? selectedResponseDeadline;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateDialog) => AlertDialog(
+          title: const Text('Nueva Cotización Enviada'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(
+                    labelText: 'Título de la cotización',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: clientController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nombre del cliente',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: valueController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Valor de la cotización',
+                    prefixText: 'CLP \$ ',
+                    border: OutlineInputBorder(),
+                    helperText: 'Ejemplo: 1500000 (sin puntos ni comas)',
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.attach_file, color: Colors.grey.shade600),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Archivos de cotización',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  'Funcionalidad de archivos en desarrollo'),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.upload_file, size: 20),
+                        label: const Text('Adjuntar cotización'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green.shade50,
+                          foregroundColor: Colors.green,
+                          elevation: 0,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Formatos permitidos: PDF, DOC, XLS, IMG',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: sentDateController,
+                  readOnly: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Fecha de envío',
+                    suffixIcon: Icon(Icons.calendar_today),
+                    border: OutlineInputBorder(),
+                  ),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                    );
+                    if (picked != null) {
+                      setStateDialog(() {
+                        selectedSentDate = picked;
+                        sentDateController.text =
+                            formatDate(picked.toIso8601String());
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: responseDeadlineController,
+                  readOnly: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Fecha límite de respuesta',
+                    suffixIcon: Icon(Icons.schedule),
+                    border: OutlineInputBorder(),
+                  ),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                    );
+                    if (picked != null) {
+                      setStateDialog(() {
+                        selectedResponseDeadline = picked;
+                        responseDeadlineController.text =
+                            formatDate(picked.toIso8601String());
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: descriptionController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Descripción',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (titleController.text.isEmpty ||
+                    clientController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content:
+                            Text('Por favor completa los campos obligatorios')),
+                  );
+                  return;
+                }
+
+                await _createNewQuote(
+                  title: titleController.text,
+                  client: clientController.text,
+                  value: valueController.text,
+                  description: descriptionController.text,
+                  sentDate: selectedSentDate,
+                  responseDeadline: selectedResponseDeadline,
+                );
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              child: const Text('Crear', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _createNewQuote({
+    required String title,
+    required String client,
+    required String value,
+    required String description,
+    DateTime? sentDate,
+    DateTime? responseDeadline,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        throw Exception('Token no disponible');
+      }
+
+      final response = await http.post(
+        Uri.parse('https://backend-jcrgapp.onrender.com/user/proposals'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode({
+          'title': title,
+          'client_name': client,
+          'value': value.isEmpty ? '0' : value,
+          'currency': 'CLP',
+          'description': description,
+          'sent_date':
+              sentDate?.toIso8601String() ?? DateTime.now().toIso8601String(),
+          'response_deadline': responseDeadline?.toIso8601String(),
+          'status': 'enviado',
+          'files_path':
+              '/proposals/quotes/${DateTime.now().millisecondsSinceEpoch}',
+        }),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        setState(() {
+          proposalsFuture = fetchProposals();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cotización creada exitosamente')),
+        );
+      } else {
+        throw Exception('Error al crear la cotización');
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $error')),
+      );
+    }
   }
 }

@@ -184,7 +184,7 @@ class _ProposalsPreparingWidgetState extends State<ProposalsPreparingWidget> {
                     child: _buildInfoChip(
                       Icons.attach_money,
                       'Valor',
-                      '\$${proposal['value'] ?? '0'}',
+                      'CLP \$${proposal['value'] ?? '0'}',
                       Colors.green,
                     ),
                   ),
@@ -445,6 +445,232 @@ class _ProposalsPreparingWidgetState extends State<ProposalsPreparingWidget> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showNewProposalForm(context),
+        backgroundColor: Colors.orange,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
     );
+  }
+
+  void _showNewProposalForm(BuildContext context) {
+    final titleController = TextEditingController();
+    final clientController = TextEditingController();
+    final valueController = TextEditingController();
+    final descriptionController = TextEditingController();
+    final deadlineController = TextEditingController();
+    DateTime? selectedDeadline;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateDialog) => AlertDialog(
+          title: const Text('Nueva Propuesta Preparando'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(
+                    labelText: 'Título de la propuesta',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: clientController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nombre del cliente',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: valueController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Valor estimado',
+                    prefixText: 'CLP \$ ',
+                    border: OutlineInputBorder(),
+                    helperText: 'Ejemplo: 1500000 (sin puntos ni comas)',
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.attach_file, color: Colors.grey.shade600),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Archivos adjuntos',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  'Funcionalidad de archivos en desarrollo'),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.upload_file, size: 20),
+                        label: const Text('Seleccionar archivos'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange.shade50,
+                          foregroundColor: Colors.orange,
+                          elevation: 0,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Formatos permitidos: PDF, DOC, XLS, IMG',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: deadlineController,
+                  readOnly: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Fecha límite',
+                    suffixIcon: Icon(Icons.calendar_today),
+                    border: OutlineInputBorder(),
+                  ),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                    );
+                    if (picked != null) {
+                      setStateDialog(() {
+                        selectedDeadline = picked;
+                        deadlineController.text =
+                            formatDate(picked.toIso8601String());
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: descriptionController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Descripción',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (titleController.text.isEmpty ||
+                    clientController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content:
+                            Text('Por favor completa los campos obligatorios')),
+                  );
+                  return;
+                }
+
+                await _createNewProposal(
+                  title: titleController.text,
+                  client: clientController.text,
+                  value: valueController.text,
+                  description: descriptionController.text,
+                  deadline: selectedDeadline,
+                  status: 'preparando',
+                );
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+              child: const Text('Crear', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _createNewProposal({
+    required String title,
+    required String client,
+    required String value,
+    required String description,
+    DateTime? deadline,
+    required String status,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        throw Exception('Token no disponible');
+      }
+
+      final response = await http.post(
+        Uri.parse('https://backend-jcrgapp.onrender.com/user/proposals'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode({
+          'title': title,
+          'client_name': client,
+          'value': value.isEmpty ? '0' : value,
+          'currency': 'CLP',
+          'description': description,
+          'deadline': deadline?.toIso8601String(),
+          'status': status,
+          'files_path':
+              '/proposals/preparing/${DateTime.now().millisecondsSinceEpoch}',
+        }),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        setState(() {
+          proposalsFuture = fetchProposals();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Propuesta creada exitosamente')),
+        );
+      } else {
+        throw Exception('Error al crear la propuesta');
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $error')),
+      );
+    }
   }
 }
