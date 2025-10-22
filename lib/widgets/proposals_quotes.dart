@@ -480,7 +480,7 @@ class _ProposalsQuotesWidgetState extends State<ProposalsQuotesWidget> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setStateDialog) => AlertDialog(
-          title: const Text('Nueva Cotización Enviada'),
+          title: const Text('Cotización Enviada'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/proposals_participating.dart';
 import '../widgets/proposals_preparing.dart';
 import '../widgets/proposals_quotes.dart';
+import '../widgets/proposals_history.dart';
 
 class ProposalsScreen extends StatefulWidget {
   const ProposalsScreen({super.key});
@@ -147,6 +148,19 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
                             MaterialPageRoute(
                               builder: (context) =>
                                   const ProposalsQuotesWidget(),
+                            )),
+                        isLargeScreen: isLargeScreen,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildProposalButton(
+                        'Historial',
+                        Icons.history,
+                        Colors.purple,
+                        () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const ProposalsHistoryWidget(),
                             )),
                         isLargeScreen: isLargeScreen,
                       ),

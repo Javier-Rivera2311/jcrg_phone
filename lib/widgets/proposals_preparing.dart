@@ -465,7 +465,7 @@ class _ProposalsPreparingWidgetState extends State<ProposalsPreparingWidget> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setStateDialog) => AlertDialog(
-          title: const Text('Nueva Propuesta Preparando'),
+          title: const Text('Propuesta Preparando'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,

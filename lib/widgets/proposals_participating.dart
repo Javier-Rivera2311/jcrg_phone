@@ -466,7 +466,7 @@ class _ProposalsParticipatingWidgetState
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setStateDialog) => AlertDialog(
-          title: const Text('Nueva Propuesta Participando'),
+          title: const Text('Propuesta Participando'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -574,31 +574,6 @@ class _ProposalsParticipatingWidgetState
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: deadlineController,
-                  readOnly: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Fecha límite',
-                    suffixIcon: Icon(Icons.calendar_today),
-                    border: OutlineInputBorder(),
-                  ),
-                  onTap: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 365)),
-                    );
-                    if (picked != null) {
-                      setStateDialog(() {
-                        selectedDeadline = picked;
-                        deadlineController.text =
-                            formatDate(picked.toIso8601String());
-                      });
-                    }
-                  },
                 ),
                 const SizedBox(height: 16),
                 TextField(
